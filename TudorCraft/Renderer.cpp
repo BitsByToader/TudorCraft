@@ -37,6 +37,9 @@ Renderer::Renderer( MTL::Device* pDevice )
     
     AAPL_PRINT("Metal device used to render: ", m_device->name()->utf8String());
     
+    // Create a blank texture atlas
+    m_atlas = new TextureAtlas();
+    
     loadMetal();
 }
 
@@ -44,21 +47,74 @@ Renderer::~Renderer() {
     m_pipelineState->release();
     m_commandQueue->release();
     m_device->release();
+    
+    delete m_atlas;
+}
+
+MTL::Texture *Renderer::loadTextureUsingAtlas() {
+    // Get image from storage and load it in the atlas
+    m_atlas->loadAtlasInMemory();
+    
+    // Indicate that each pixel has a blue, green, red, and alpha channel, where each channel is
+    MTL::TextureDescriptor *textureDescriptor = MTL::TextureDescriptor::alloc()->init();
+    textureDescriptor->setPixelFormat(MTL::PixelFormatBGRA8Unorm_sRGB);
+    
+    // Set the pixel dimensions of the texture
+    textureDescriptor->setWidth(m_atlas->getWidth());
+    textureDescriptor->setHeight(m_atlas->getHeight());
+    
+    // Create the texture from the device by using the descriptor
+    MTL::Texture *texture = m_device->newTexture(textureDescriptor);
+    
+    NS::UInteger bytesPerRow = m_atlas->getChannels() * m_atlas->getWidth();
+    
+    MTL::Region region = MTL::Region(0, 0, 0, // MTLOrigin
+                                     m_atlas->getWidth(), m_atlas->getHeight(), 1); // MTLSize
+    
+    // Copy the bytes from the data object into the texture
+    texture->replaceRegion(region, 0, m_atlas->getRawData(), bytesPerRow);
+    
+    return texture;
 }
 
 void Renderer::loadMetal() {
+    // MARK: Create texture
+    
+    m_texture = loadTextureUsingAtlas();
+    
+    // MARK: Create vertices
+    
+    static const Vertex quadVertices[] =
+    {
+        // Pixel positions, Texture coordinates
+        { {  250,  -250 },  { 1.f, 1.f } },
+        { { -250,  -250 },  { 0.f, 1.f } },
+        { { -250,   250 },  { 0.f, 0.f } },
+
+        { {  250,  -250 },  { 1.f, 1.f } },
+        { { -250,   250 },  { 0.f, 0.f } },
+        { {  250,   250 },  { 1.f, 0.f } },
+    };
+    
+    // Create a vertex buffer, and initialize it with the quadVertices array
+    m_vertices = m_device->newBuffer(quadVertices, sizeof(quadVertices), MTL::ResourceStorageModeShared);
+    
+    m_verticesCount = sizeof(quadVertices) / sizeof(Vertex);
+    
+    //MARK: Create render pipeline
+    
     // Load all the shader files with the .metal extensions in the project
     MTL::Library *defaultLibrary = m_device->newDefaultLibrary();
     
     MTL::Function *vertexFunction = defaultLibrary->newFunction(AAPLSTR("vertexShader"));
-    MTL::Function *fragmentFunction = defaultLibrary->newFunction(AAPLSTR("fragmentShader"));
+    MTL::Function *fragmentFunction = defaultLibrary->newFunction(AAPLSTR("samplingShader"));
     
     AAPL_ASSERT(vertexFunction, "Couldn't create vertexFunction");
     AAPL_ASSERT(fragmentFunction, "Couldn't create fragmentFunction");
     
     // Configure a pipeline descrmiptor that is used to create a pipeline state.
     MTL::RenderPipelineDescriptor *pipeLineStateDescriptor = MTL::RenderPipelineDescriptor::alloc()->init();
-    pipeLineStateDescriptor->setLabel(AAPLSTR("A pipeline?"));
+    pipeLineStateDescriptor->setLabel(AAPLSTR("My super awesome pipeline!"));
     pipeLineStateDescriptor->setVertexFunction(vertexFunction);
     pipeLineStateDescriptor->setFragmentFunction(fragmentFunction);
     pipeLineStateDescriptor->colorAttachments()->object(NS::UInteger(0))->setPixelFormat(MTL::PixelFormatBGRA8Unorm_sRGB);
@@ -80,17 +136,9 @@ void Renderer::windowSizeWillChange(unsigned int width, unsigned int height) {
 };
 
 void Renderer::draw(MTL::RenderPassDescriptor *currentRPD, MTL::Drawable* currentDrawable) {
-    static const Vertex triangleVertices[] =
-    {
-        // 2D Positions,   RGBA colours
-        { {  250,  -250 }, { 1, 0, 0, 1 } },
-        { { -250,  -250 }, { 0, 1, 0, 1 } },
-        { {    0,   250 }, { 0, 0, 1, 1 } },
-    };
-    
     // Create a new command buffer for each render pass to the current drawable.
     MTL::CommandBuffer *commandBuffer = m_commandQueue->commandBuffer();
-    commandBuffer->setLabel(AAPLSTR("Simple Command"));
+    commandBuffer->setLabel(AAPLSTR("Texturing Command"));
     
     if ( currentRPD != nullptr ) {
         // Create a render command encoder.
@@ -103,16 +151,18 @@ void Renderer::draw(MTL::RenderPassDescriptor *currentRPD, MTL::Drawable* curren
         renderEncoder->setRenderPipelineState(m_pipelineState);
         
         // Pass in the parameter data.
-        renderEncoder->setVertexBytes(triangleVertices,
-                                      sizeof(triangleVertices),
-                                      VertexInputIndexVertices);
+        renderEncoder->setVertexBuffer(m_vertices, 0, VertexInputIndexVertices);
         
         renderEncoder->setVertexBytes(&m_windowSize,
                                       sizeof(m_windowSize),
                                       VertexInputIndexViewportSize);
+         // Set the texture object.  The AAPLTextureIndexBaseColor enum value corresponds
+        //  to the 'colorMap' argument in the 'samplingShader' function because its
+        //   texture attribute qualifier also uses AAPLTextureIndexBaseColor for its index.
+        renderEncoder->setFragmentTexture(m_texture, TextureIndexBaseColor);
         
         // Draw the triangle.
-        renderEncoder->drawPrimitives(MTL::PrimitiveTypeTriangle, NS::UInteger(0), NS::UInteger(3));
+        renderEncoder->drawPrimitives(MTL::PrimitiveTypeTriangle, NS::UInteger(0), m_verticesCount);
         
         renderEncoder->endEncoding();
         

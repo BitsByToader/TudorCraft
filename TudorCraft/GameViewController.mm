@@ -5,7 +5,7 @@
 //  Created by Tudor Ifrim on 04.11.2022.
 //
 
-#import "SwiftCppBridge.h"
+#import "GameViewController.h"
 
 #include "Renderer.h"
 

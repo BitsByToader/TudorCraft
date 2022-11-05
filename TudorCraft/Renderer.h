@@ -11,12 +11,16 @@
 #include <Metal/Metal.hpp>
 #include <simd/simd.h>
 
+#include "TextureAtlas.hpp"
+
 class Renderer {
 public:
     Renderer( MTL::Device* pDevice );
     ~Renderer();
     
     void loadMetal();
+    
+    MTL::Texture *loadTextureUsingAtlas();
     
     void windowSizeWillChange(unsigned int width, unsigned int height);
     
@@ -25,17 +29,29 @@ public:
 private:
     dispatch_semaphore_t m_inFlightSemaphore;
     
-    // The device we're using to render.
+    /// The device we're using to render.
     MTL::Device* m_device;
     
-    // The command queue used to pass commands to the device.
+    /// The command queue used to pass commands to the device.
     MTL::CommandQueue* m_commandQueue;
     
-    // The render pipeline generated from the vertex and fragment shaders
+    /// The render pipeline generated from the vertex and fragment shaders
     MTL::RenderPipelineState* m_pipelineState;
     
-    // Window size
+    /// Metal texture
+    MTL::Texture *m_texture;
+    
+    /// Vertex data
+    MTL::Buffer *m_vertices;
+    
+    /// Number of vertices
+    NS::UInteger m_verticesCount;
+    
+    /// Window size
     vector_uint2 m_windowSize;
+    
+    /// The atlas we're using to load the textures from.
+    TextureAtlas *m_atlas;
 };
 
 #endif /* Renderer_hpp */

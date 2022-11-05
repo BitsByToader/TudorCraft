@@ -13,18 +13,17 @@ using namespace metal;
 #include "ShaderTypes.h"
 
 // Vertex shader outputs and fragment shader inputs
-struct RasterizerData
-{
-    // The [[position]] attribute of this member indicates that this value
-    // is the clip space position of the vertex when this structure is
-    // returned from the vertex function.
+struct RasterizerData {
+    // The [[position]] attribute qualifier of this member indicates this value is
+    // the clip space position of the vertex when this structure is returned from
+    // the vertex shader
     float4 position [[position]];
 
-    // Since this member does not have a special attribute, the rasterizer
-    // interpolates its value with the values of the other triangle vertices
-    // and then passes the interpolated value to the fragment shader for each
-    // fragment in the triangle.
-    float4 color;
+    // Since this member does not have a special attribute qualifier, the rasterizer
+    // will interpolate its value with values of other vertices making up the triangle
+    // and pass that interpolated value to the fragment shader for each fragment in
+    // that triangle.
+    float2 textureCoordinate;
 };
 
 vertex RasterizerData
@@ -49,15 +48,24 @@ vertexShader(uint vertexID [[vertex_id]],
     out.position.xy = pixelSpacePosition / (viewportSize / 2.0);
 
     // Pass the input color directly to the rasterizer.
-    out.color = vertices[vertexID].color;
+    out.textureCoordinate = vertices[vertexID].textureCoordinate;
 
     return out;
 }
 
-fragment float4 fragmentShader(RasterizerData in [[stage_in]])
+// Fragment function
+fragment float4
+samplingShader(RasterizerData in [[stage_in]],
+               texture2d<half> colorTexture [[ texture(TextureIndexBaseColor) ]])
 {
-    // Return the interpolated color.
-    return in.color;
+    constexpr sampler textureSampler (mag_filter::linear,
+                                      min_filter::linear);
+
+    // Sample the texture to obtain a color
+    const half4 colorSample = colorTexture.sample(textureSampler, in.textureCoordinate);
+
+    // return the color of the texture
+    return float4(colorSample);
 }
 
 

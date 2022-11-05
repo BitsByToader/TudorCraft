@@ -17,7 +17,9 @@
 		8B1FF3C6291315D800A9C095 /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8B1FF3C5291315D800A9C095 /* QuartzCore.framework */; };
 		8B1FF3C8291315DC00A9C095 /* Metal.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8B1FF3C7291315DC00A9C095 /* Metal.framework */; };
 		8B1FF3CA291319E400A9C095 /* MetalKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8B1FF3C9291319E400A9C095 /* MetalKit.framework */; settings = {ATTRIBUTES = (Required, ); }; };
-		8B9B8322291528F400FB1030 /* SwiftCppBridge.mm in Sources */ = {isa = PBXBuildFile; fileRef = 8B9B8321291528F400FB1030 /* SwiftCppBridge.mm */; };
+		8B53B3E32916889200713715 /* test.png in Resources */ = {isa = PBXBuildFile; fileRef = 8B53B3E22916889200713715 /* test.png */; };
+		8B53B3E6291697AC00713715 /* TextureAtlas.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8B53B3E4291697AC00713715 /* TextureAtlas.cpp */; };
+		8B9B8322291528F400FB1030 /* GameViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = 8B9B8321291528F400FB1030 /* GameViewController.mm */; };
 		8B9B832E2915951E00FB1030 /* Shaders.metal in Sources */ = {isa = PBXBuildFile; fileRef = 8B9B832D2915951E00FB1030 /* Shaders.metal */; };
 /* End PBXBuildFile section */
 
@@ -36,8 +38,11 @@
 		8B1FF3C5291315D800A9C095 /* QuartzCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuartzCore.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS16.1.sdk/System/Library/Frameworks/QuartzCore.framework; sourceTree = DEVELOPER_DIR; };
 		8B1FF3C7291315DC00A9C095 /* Metal.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Metal.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS16.1.sdk/System/Library/Frameworks/Metal.framework; sourceTree = DEVELOPER_DIR; };
 		8B1FF3C9291319E400A9C095 /* MetalKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MetalKit.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS16.1.sdk/System/Library/Frameworks/MetalKit.framework; sourceTree = DEVELOPER_DIR; };
-		8B9B8321291528F400FB1030 /* SwiftCppBridge.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = SwiftCppBridge.mm; sourceTree = "<group>"; };
-		8B9B83232915290F00FB1030 /* SwiftCppBridge.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SwiftCppBridge.h; sourceTree = "<group>"; };
+		8B53B3E22916889200713715 /* test.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = test.png; sourceTree = "<group>"; };
+		8B53B3E4291697AC00713715 /* TextureAtlas.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = TextureAtlas.cpp; sourceTree = "<group>"; };
+		8B53B3E5291697AC00713715 /* TextureAtlas.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = TextureAtlas.hpp; sourceTree = "<group>"; };
+		8B9B8321291528F400FB1030 /* GameViewController.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = GameViewController.mm; sourceTree = "<group>"; };
+		8B9B83232915290F00FB1030 /* GameViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = GameViewController.h; sourceTree = "<group>"; };
 		8B9B832B29158E7300FB1030 /* AAPLUtilities.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AAPLUtilities.h; sourceTree = "<group>"; };
 		8B9B832C291594DC00FB1030 /* ShaderTypes.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ShaderTypes.h; sourceTree = "<group>"; };
 		8B9B832D2915951E00FB1030 /* Shaders.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = Shaders.metal; sourceTree = "<group>"; };
@@ -81,13 +86,16 @@
 				8B1FF3AD29130D5500A9C095 /* TudorCraftApp.swift */,
 				8B1FF3AF29130D5500A9C095 /* ContentView.swift */,
 				8B1FF3BC29130F4400A9C095 /* GameView.swift */,
+				8B53B3E22916889200713715 /* test.png */,
 				8B9B832B29158E7300FB1030 /* AAPLUtilities.h */,
 				8B1FF3BF2913142500A9C095 /* Renderer.cpp */,
 				8B1FF3C02913142500A9C095 /* Renderer.h */,
+				8B53B3E4291697AC00713715 /* TextureAtlas.cpp */,
+				8B53B3E5291697AC00713715 /* TextureAtlas.hpp */,
 				8B9B832C291594DC00FB1030 /* ShaderTypes.h */,
 				8B9B832D2915951E00FB1030 /* Shaders.metal */,
-				8B9B83232915290F00FB1030 /* SwiftCppBridge.h */,
-				8B9B8321291528F400FB1030 /* SwiftCppBridge.mm */,
+				8B9B83232915290F00FB1030 /* GameViewController.h */,
+				8B9B8321291528F400FB1030 /* GameViewController.mm */,
 				8B1FF3B129130D5700A9C095 /* Assets.xcassets */,
 				8B1FF3B329130D5700A9C095 /* TudorCraft.entitlements */,
 				8B1FF3B429130D5700A9C095 /* Preview Content */,
@@ -176,6 +184,7 @@
 			files = (
 				8B1FF3B629130D5700A9C095 /* Preview Assets.xcassets in Resources */,
 				8B1FF3B229130D5700A9C095 /* Assets.xcassets in Resources */,
+				8B53B3E32916889200713715 /* test.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -189,8 +198,9 @@
 				8B9B832E2915951E00FB1030 /* Shaders.metal in Sources */,
 				8B1FF3C12913142500A9C095 /* Renderer.cpp in Sources */,
 				8B1FF3B029130D5500A9C095 /* ContentView.swift in Sources */,
+				8B53B3E6291697AC00713715 /* TextureAtlas.cpp in Sources */,
 				8B1FF3BD29130F4400A9C095 /* GameView.swift in Sources */,
-				8B9B8322291528F400FB1030 /* SwiftCppBridge.mm in Sources */,
+				8B9B8322291528F400FB1030 /* GameViewController.mm in Sources */,
 				8B1FF3AE29130D5500A9C095 /* TudorCraftApp.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -328,6 +338,7 @@
 				HEADER_SEARCH_PATHS = (
 					CPPMetal/Headers,
 					"metal-cpp",
+					"stb-image",
 				);
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
@@ -375,6 +386,7 @@
 				HEADER_SEARCH_PATHS = (
 					CPPMetal/Headers,
 					"metal-cpp",
+					"stb-image",
 				);
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
