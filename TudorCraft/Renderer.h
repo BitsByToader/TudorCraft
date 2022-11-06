@@ -55,6 +55,8 @@ private:
     
     /// The atlas we're using to load the textures from.
     TextureAtlas *m_atlas;
+    
+    bool _right = false;
 };
 
 #endif /* Renderer_hpp */

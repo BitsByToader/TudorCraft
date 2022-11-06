@@ -79,8 +79,9 @@ MTL::Texture *Renderer::loadTextureUsingAtlas() {
 }
 
 void Renderer::loadMetal() {
-    // MARK: Create texture
+    NS::AutoreleasePool* pPool = NS::AutoreleasePool::alloc()->init();
     
+    // MARK: Create texture
     m_texture = loadTextureUsingAtlas();
     
     // MARK: Create vertices
@@ -102,7 +103,7 @@ void Renderer::loadMetal() {
     };
     
     // Create a vertex buffer, and initialize it with the quadVertices array
-    m_vertices = m_device->newBuffer(quadVertices, sizeof(quadVertices), MTL::ResourceStorageModeShared);
+    m_vertices = m_device->newBuffer(quadVertices, sizeof(quadVertices), MTL::ResourceStorageModeManaged);
     
     m_verticesCount = sizeof(quadVertices) / sizeof(Vertex);
     
@@ -141,6 +142,8 @@ void Renderer::loadMetal() {
     vertexFunction->release();
     fragmentFunction->release();
     defaultLibrary->release();
+    
+    pPool->release();
 }
 
 void Renderer::windowSizeWillChange(unsigned int width, unsigned int height) {
@@ -150,6 +153,24 @@ void Renderer::windowSizeWillChange(unsigned int width, unsigned int height) {
 
 void Renderer::draw(MTL::RenderPassDescriptor *currentRPD, MTL::Drawable* currentDrawable) {
     NS::AutoreleasePool* pPool = NS::AutoreleasePool::alloc()->init();
+    
+    Vertex *quad  = reinterpret_cast<Vertex *>(m_vertices->contents());
+    
+    for ( int i = 0; i < m_verticesCount; i++ ) {
+        if ( _right )
+            quad[i].position.x += 10;
+        else
+            quad[i].position.x -= 10;
+    }
+    
+    if ( quad[0].position.x >= 500 ) {
+        _right = false;
+    }
+    if ( quad[1].position.x <= -500 ) {
+        _right = true;
+    }
+
+    m_vertices->didModifyRange(NS::Range::Make(0, m_verticesCount));
     
     // Create a new command buffer for each render pass to the current drawable.
     MTL::CommandBuffer *commandBuffer = m_commandQueue->commandBuffer();
