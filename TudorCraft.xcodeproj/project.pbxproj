@@ -17,6 +17,7 @@
 		8B1FF3C6291315D800A9C095 /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8B1FF3C5291315D800A9C095 /* QuartzCore.framework */; };
 		8B1FF3C8291315DC00A9C095 /* Metal.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8B1FF3C7291315DC00A9C095 /* Metal.framework */; };
 		8B1FF3CA291319E400A9C095 /* MetalKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8B1FF3C9291319E400A9C095 /* MetalKit.framework */; settings = {ATTRIBUTES = (Required, ); }; };
+		8B2B7A902917C51800916671 /* Math3D.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8B2B7A8E2917C51800916671 /* Math3D.cpp */; };
 		8B53B3E32916889200713715 /* test.png in Resources */ = {isa = PBXBuildFile; fileRef = 8B53B3E22916889200713715 /* test.png */; };
 		8B53B3E6291697AC00713715 /* TextureAtlas.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8B53B3E4291697AC00713715 /* TextureAtlas.cpp */; };
 		8B9B8322291528F400FB1030 /* GameViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = 8B9B8321291528F400FB1030 /* GameViewController.mm */; };
@@ -38,6 +39,8 @@
 		8B1FF3C5291315D800A9C095 /* QuartzCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuartzCore.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS16.1.sdk/System/Library/Frameworks/QuartzCore.framework; sourceTree = DEVELOPER_DIR; };
 		8B1FF3C7291315DC00A9C095 /* Metal.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Metal.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS16.1.sdk/System/Library/Frameworks/Metal.framework; sourceTree = DEVELOPER_DIR; };
 		8B1FF3C9291319E400A9C095 /* MetalKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MetalKit.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS16.1.sdk/System/Library/Frameworks/MetalKit.framework; sourceTree = DEVELOPER_DIR; };
+		8B2B7A8E2917C51800916671 /* Math3D.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Math3D.cpp; sourceTree = "<group>"; };
+		8B2B7A8F2917C51800916671 /* Math3D.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = Math3D.hpp; sourceTree = "<group>"; };
 		8B53B3E22916889200713715 /* test.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = test.png; sourceTree = "<group>"; };
 		8B53B3E4291697AC00713715 /* TextureAtlas.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = TextureAtlas.cpp; sourceTree = "<group>"; };
 		8B53B3E5291697AC00713715 /* TextureAtlas.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = TextureAtlas.hpp; sourceTree = "<group>"; };
@@ -94,6 +97,8 @@
 				8B53B3E5291697AC00713715 /* TextureAtlas.hpp */,
 				8B9B832C291594DC00FB1030 /* ShaderTypes.h */,
 				8B9B832D2915951E00FB1030 /* Shaders.metal */,
+				8B2B7A8E2917C51800916671 /* Math3D.cpp */,
+				8B2B7A8F2917C51800916671 /* Math3D.hpp */,
 				8B9B83232915290F00FB1030 /* GameViewController.h */,
 				8B9B8321291528F400FB1030 /* GameViewController.mm */,
 				8B1FF3B129130D5700A9C095 /* Assets.xcassets */,
@@ -199,6 +204,7 @@
 				8B1FF3C12913142500A9C095 /* Renderer.cpp in Sources */,
 				8B1FF3B029130D5500A9C095 /* ContentView.swift in Sources */,
 				8B53B3E6291697AC00713715 /* TextureAtlas.cpp in Sources */,
+				8B2B7A902917C51800916671 /* Math3D.cpp in Sources */,
 				8B1FF3BD29130F4400A9C095 /* GameView.swift in Sources */,
 				8B9B8322291528F400FB1030 /* GameViewController.mm in Sources */,
 				8B1FF3AE29130D5500A9C095 /* TudorCraftApp.swift in Sources */,

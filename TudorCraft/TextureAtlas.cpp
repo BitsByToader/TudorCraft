@@ -43,6 +43,13 @@ void TextureAtlas::loadAtlasInMemory() {
             int cpy = m_rawData[iteration]; //save r
             m_rawData[iteration] = m_rawData[iteration + 2]; // r = b
             m_rawData[iteration + 2] = cpy; // b = r
+            
+            int r = m_rawData[iteration];
+            int g = m_rawData[iteration + 1];
+            int b = m_rawData[iteration + 2];
+            int a = m_rawData[iteration + 3];
+            
+            AAPL_PRINT(r, g, b, a);
         }
     }
 #endif

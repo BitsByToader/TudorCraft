@@ -38,6 +38,9 @@ private:
     /// The render pipeline generated from the vertex and fragment shaders
     MTL::RenderPipelineState* m_pipelineState;
     
+    /// Combined depth and stenctil object
+    MTL::DepthStencilState* m_depthState;
+    
     /// Metal texture
     MTL::Texture *m_texture;
     

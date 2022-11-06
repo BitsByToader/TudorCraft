@@ -7,6 +7,7 @@
 
 // MARK: TODO
 /*
+ - Fix the memory leak!!!
  - Clean up the code.
  - Create folders for the renderer, for the shader stuff, rest of the app, etc.
  - Do more than a triangle. :)
@@ -30,6 +31,7 @@
 
 #include "Renderer.h"
 #include "ShaderTypes.h"
+#include "Math3D.hpp"
 
 Renderer::Renderer( MTL::Device* pDevice )
 : m_device( pDevice->retain() ) {
@@ -73,7 +75,6 @@ MTL::Texture *Renderer::loadTextureUsingAtlas() {
     
     // Copy the bytes from the data object into the texture
     texture->replaceRegion(region, 0, m_atlas->getRawData(), bytesPerRow);
-    
     return texture;
 }
 
@@ -83,17 +84,21 @@ void Renderer::loadMetal() {
     m_texture = loadTextureUsingAtlas();
     
     // MARK: Create vertices
-    
-    static const Vertex quadVertices[] =
+    static Vertex quadVertices[] =
     {
-        // Pixel positions, Texture coordinates
-        { {  250,  -250 },  { 1.f, 1.f } },
-        { { -250,  -250 },  { 0.f, 1.f } },
-        { { -250,   250 },  { 0.f, 0.f } },
+        // Pixel positions+depth, Texture coordinates
+        
+        //Triangle Left
+        { {  250,  -250, 1.0 },  { 1.f, 1.f } },
+        { { -250,  -250, 1.0 },  { 0.f, 1.f } },
+        { { -250,   250, 1.0 },  { 0.f, 0.f } },
 
-        { {  250,  -250 },  { 1.f, 1.f } },
-        { { -250,   250 },  { 0.f, 0.f } },
-        { {  250,   250 },  { 1.f, 0.f } },
+        //Triangle Right
+        { {  250,  -250, 1.0 },  { 1.f, 1.f } },
+        { { -250,   250, 1.0 },  { 0.f, 0.f } },
+        { {  250,   250, 1.0 },  { 1.f, 0.f } },
+        
+        // => a magnificient quad
     };
     
     // Create a vertex buffer, and initialize it with the quadVertices array
@@ -118,12 +123,20 @@ void Renderer::loadMetal() {
     pipeLineStateDescriptor->setVertexFunction(vertexFunction);
     pipeLineStateDescriptor->setFragmentFunction(fragmentFunction);
     pipeLineStateDescriptor->colorAttachments()->object(NS::UInteger(0))->setPixelFormat(MTL::PixelFormatBGRA8Unorm_sRGB);
+    pipeLineStateDescriptor->setDepthAttachmentPixelFormat(MTL::PixelFormatDepth32Float);
     
     NS::Error *err = nullptr;
     m_pipelineState = m_device->newRenderPipelineState(pipeLineStateDescriptor, &err);
     
     AAPL_ASSERT_NULL_ERROR(err, "Failed to create pipeline state...");
     
+    //MARK: - Create depth/stenctil object
+    MTL::DepthStencilDescriptor* depthDescriptor = MTL::DepthStencilDescriptor::alloc()->init();
+    depthDescriptor->setDepthCompareFunction(MTL::CompareFunctionLessEqual);
+    depthDescriptor->setDepthWriteEnabled(true);
+    m_depthState = m_device->newDepthStencilState(depthDescriptor);
+    
+    depthDescriptor->release();
     pipeLineStateDescriptor->release();
     vertexFunction->release();
     fragmentFunction->release();
@@ -136,6 +149,8 @@ void Renderer::windowSizeWillChange(unsigned int width, unsigned int height) {
 };
 
 void Renderer::draw(MTL::RenderPassDescriptor *currentRPD, MTL::Drawable* currentDrawable) {
+    NS::AutoreleasePool* pPool = NS::AutoreleasePool::alloc()->init();
+    
     // Create a new command buffer for each render pass to the current drawable.
     MTL::CommandBuffer *commandBuffer = m_commandQueue->commandBuffer();
     commandBuffer->setLabel(AAPLSTR("Texturing Command"));
@@ -150,24 +165,28 @@ void Renderer::draw(MTL::RenderPassDescriptor *currentRPD, MTL::Drawable* curren
         
         renderEncoder->setRenderPipelineState(m_pipelineState);
         
+        renderEncoder->setDepthStencilState(m_depthState);
+        
         // Pass in the parameter data.
         renderEncoder->setVertexBuffer(m_vertices, 0, VertexInputIndexVertices);
         
         renderEncoder->setVertexBytes(&m_windowSize,
                                       sizeof(m_windowSize),
                                       VertexInputIndexViewportSize);
-         // Set the texture object.  The AAPLTextureIndexBaseColor enum value corresponds
+         
+        // Set the texture object.  The AAPLTextureIndexBaseColor enum value corresponds
         //  to the 'colorMap' argument in the 'samplingShader' function because its
         //   texture attribute qualifier also uses AAPLTextureIndexBaseColor for its index.
         renderEncoder->setFragmentTexture(m_texture, TextureIndexBaseColor);
         
         // Draw the triangle.
         renderEncoder->drawPrimitives(MTL::PrimitiveTypeTriangle, NS::UInteger(0), m_verticesCount);
-        
         renderEncoder->endEncoding();
         
         commandBuffer->presentDrawable(currentDrawable);
     }
     
     commandBuffer->commit();
+    
+    pPool->release();
 }

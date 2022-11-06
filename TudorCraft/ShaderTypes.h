@@ -20,8 +20,8 @@ typedef enum TextureIndex {
 } TextureIndex;
 
 typedef struct {
-    // Position in pixel space ( the origin is in the center of the view, similar to a graph)
-    vector_float2 position;
+    // Position in clipSpace ( the origin is in the center of the view, similar to a graph + depth)
+    vector_float3 position;
     
     // 2D coordinate of texture
     vector_float2 textureCoordinate;

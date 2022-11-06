@@ -43,6 +43,9 @@
     
     m_view.clearColor = cc;
     
+    m_view.depthStencilPixelFormat = MTLPixelFormatDepth32Float;
+    m_view.clearDepth = 1.0;
+    
     m_device = MTL::CreateSystemDefaultDevice();
     
     NSAssert(m_device, @"Metal is not supported on this device");

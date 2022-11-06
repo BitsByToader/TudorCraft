@@ -17,7 +17,7 @@ struct RasterizerData {
     // The [[position]] attribute qualifier of this member indicates this value is
     // the clip space position of the vertex when this structure is returned from
     // the vertex shader
-    float4 position [[position]];
+    float4 clipSpacePosition [[position]];
 
     // Since this member does not have a special attribute qualifier, the rasterizer
     // will interpolate its value with values of other vertices making up the triangle
@@ -36,16 +36,18 @@ vertexShader(uint vertexID [[vertex_id]],
     // Index into the array of positions to get the current vertex.
     // The positions are specified in pixel dimensions (i.e. a value of 100
     // is 100 pixels from the origin).
-    float2 pixelSpacePosition = vertices[vertexID].position.xy;
+    float2 pixelSpacePosition = float2(vertices[vertexID].position.xy);
 
     // Get the viewport size and cast to float.
     vector_float2 viewportSize = vector_float2(*viewportSizePointer);
     
+    // Initialize the output clip-space position.
+    out.clipSpacePosition = vector_float4(0.0, 0.0, 0.0, 1.0);
 
     // To convert from positions in pixel space to positions in clip-space,
     //  divide the pixel coordinates by half the size of the viewport.
-    out.position = vector_float4(0.0, 0.0, 0.0, 1.0);
-    out.position.xy = pixelSpacePosition / (viewportSize / 2.0);
+    out.clipSpacePosition.xy = (pixelSpacePosition / (viewportSize / 2.0));
+    out.clipSpacePosition.z = vertices[vertexID].position.z;
 
     // Pass the input color directly to the rasterizer.
     out.textureCoordinate = vertices[vertexID].textureCoordinate;
