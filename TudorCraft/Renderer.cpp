@@ -103,7 +103,7 @@ void Renderer::loadMetal() {
     };
     
     // Create a vertex buffer, and initialize it with the quadVertices array
-    m_vertices = m_device->newBuffer(quadVertices, sizeof(quadVertices), MTL::ResourceStorageModeManaged);
+    m_vertices = m_device->newBuffer(quadVertices, sizeof(quadVertices), MTL::ResourceStorageModeShared);
     
     m_verticesCount = sizeof(quadVertices) / sizeof(Vertex);
     
@@ -169,8 +169,11 @@ void Renderer::draw(MTL::RenderPassDescriptor *currentRPD, MTL::Drawable* curren
     if ( quad[1].position.x <= -500 ) {
         _right = true;
     }
-
-    m_vertices->didModifyRange(NS::Range::Make(0, m_verticesCount));
+    
+    // didModifyRange is only necessary for managed resource mode as the CPU and GPU both hold a copy of the data and syncing is necessary
+    // However, this mode is not supported on Apple GPUs since they used an unified memory model.
+    // Shared memory model is compatible on all GPUs and also doesn't need syncing, so remove the line bellow.
+    //    m_vertices->didModifyRange(NS::Range::Make(0, m_verticesCount));
     
     // Create a new command buffer for each render pass to the current drawable.
     MTL::CommandBuffer *commandBuffer = m_commandQueue->commandBuffer();
