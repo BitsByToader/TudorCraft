@@ -84,9 +84,15 @@ samplingShader(RasterizerData in [[stage_in]],
 
     // Sample the texture to obtain a color
     const half4 colorSample = colorTexture.sample(textureSampler, in.textureCoordinate);
+    
+    // assume light coming from (front-top-right)
+    float3 l = normalize(float3( 1.0, 1.0, 1.0 ));
+    float3 n = normalize( in.normal );
+
+    float ndotl = saturate( dot( n, l ) );
 
     // return the color of the texture
-    return float4(colorSample);
+    return float4(colorSample * 0.1 + colorSample * ndotl);
 }
 
 
