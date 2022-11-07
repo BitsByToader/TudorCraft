@@ -26,33 +26,36 @@ void TextureAtlas::loadAtlasInMemory() {
     NS::String *imgName = NS::String::alloc()->init("/test.png", NS::StringEncoding::UTF8StringEncoding);
     imgPath = imgPath->stringByAppendingString(imgName);
     
+    AAPL_PRINT(imgPath->utf8String());
+    
     // 4 -> 4 channels -> Red, Green, Blue, Alpha
     m_rawData = stbi_load(imgPath->utf8String(), &m_width, &m_height, &m_channels, 4);
     
-    if ( m_rawData == nullptr ) {
-        AAPL_ASSERT(true, "Couldn't load texture atlas!");
-    }
+    AAPL_ASSERT(m_rawData, "Couldn't load texture atlas!");
     
-#ifdef TARGET_OS_MAC
-    AAPL_PRINT("Swapping r and b channels for macOS...");
-    
-    for ( int i = 0; i < m_height; i++ ) {
-        for ( int j = 0; j < m_width * m_channels; j += m_channels ) {
-            int iteration = i * m_height + j;
-            
-            int cpy = m_rawData[iteration]; //save r
-            m_rawData[iteration] = m_rawData[iteration + 2]; // r = b
-            m_rawData[iteration + 2] = cpy; // b = r
-            
-            int r = m_rawData[iteration];
-            int g = m_rawData[iteration + 1];
-            int b = m_rawData[iteration + 2];
-            int a = m_rawData[iteration + 3];
-            
-            AAPL_PRINT(r, g, b, a);
-        }
-    }
-#endif
+    /*
+     #ifdef TARGET_OS_MAC
+         AAPL_PRINT("Swapping r and b channels for macOS...");
+         
+         for ( int i = 0; i < m_height; i++ ) {
+             for ( int j = 0; j < m_width * m_channels; j += m_channels ) {
+                 int iteration = i * m_height + j;
+                 
+                 int cpy = m_rawData[iteration]; //save r
+                 m_rawData[iteration] = m_rawData[iteration + 2]; // r = b
+                 m_rawData[iteration + 2] = cpy; // b = r
+                 
+                 __unused int r = m_rawData[iteration];
+                 __unused int g = m_rawData[iteration + 1];
+                 __unused int b = m_rawData[iteration + 2];
+                 __unused int a = m_rawData[iteration + 3];
+                 
+     //            AAPL_PRINT(r, g, b, a);
+             }
+         }
+     #endif
+     */
+
 };
 
 unsigned char *TextureAtlas::getRawData() {

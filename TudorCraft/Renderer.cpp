@@ -84,28 +84,58 @@ void Renderer::loadMetal() {
     // MARK: Create texture
     m_texture = loadTextureUsingAtlas();
     
+    float s = 1.f;
+    
     // MARK: Create vertices
-    static Vertex quadVertices[] =
+    Vertex quadVertices[] =
     {
-        // Pixel positions+depth, Texture coordinates
-        
-        //Triangle Left
-        { {  250,  -250, 1.0 },  { 1.f, 1.f } },
-        { { -250,  -250, 1.0 },  { 0.f, 1.f } },
-        { { -250,   250, 1.0 },  { 0.f, 0.f } },
+        //                                         Texture
+        //   Positions           Normals         Coordinates
+        { { -s, -s, +s }, {  0.f,  0.f,  1.f }, { 0.f, 1.f } },
+        { { +s, -s, +s }, {  0.f,  0.f,  1.f }, { 1.f, 1.f } },
+        { { +s, +s, +s }, {  0.f,  0.f,  1.f }, { 1.f, 0.f } },
+        { { -s, +s, +s }, {  0.f,  0.f,  1.f }, { 0.f, 0.f } },
 
-        //Triangle Right
-        { {  250,  -250, 1.0 },  { 1.f, 1.f } },
-        { { -250,   250, 1.0 },  { 0.f, 0.f } },
-        { {  250,   250, 1.0 },  { 1.f, 0.f } },
-        
-        // => a magnificient quad
+        { { +s, -s, +s }, {  1.f,  0.f,  0.f }, { 0.f, 1.f } },
+        { { +s, -s, -s }, {  1.f,  0.f,  0.f }, { 1.f, 1.f } },
+        { { +s, +s, -s }, {  1.f,  0.f,  0.f }, { 1.f, 0.f } },
+        { { +s, +s, +s }, {  1.f,  0.f,  0.f }, { 0.f, 0.f } },
+
+        { { +s, -s, -s }, {  0.f,  0.f, -1.f }, { 0.f, 1.f } },
+        { { -s, -s, -s }, {  0.f,  0.f, -1.f }, { 1.f, 1.f } },
+        { { -s, +s, -s }, {  0.f,  0.f, -1.f }, { 1.f, 0.f } },
+        { { +s, +s, -s }, {  0.f,  0.f, -1.f }, { 0.f, 0.f } },
+
+        { { -s, -s, -s }, { -1.f,  0.f,  0.f }, { 0.f, 1.f } },
+        { { -s, -s, +s }, { -1.f,  0.f,  0.f }, { 1.f, 1.f } },
+        { { -s, +s, +s }, { -1.f,  0.f,  0.f }, { 1.f, 0.f } },
+        { { -s, +s, -s }, { -1.f,  0.f,  0.f }, { 0.f, 0.f } },
+
+        { { -s, +s, +s }, {  0.f,  1.f,  0.f }, { 0.f, 1.f } },
+        { { +s, +s, +s }, {  0.f,  1.f,  0.f }, { 1.f, 1.f } },
+        { { +s, +s, -s }, {  0.f,  1.f,  0.f }, { 1.f, 0.f } },
+        { { -s, +s, -s }, {  0.f,  1.f,  0.f }, { 0.f, 0.f } },
+
+        { { -s, -s, -s }, {  0.f, -1.f,  0.f }, { 0.f, 1.f } },
+        { { +s, -s, -s }, {  0.f, -1.f,  0.f }, { 1.f, 1.f } },
+        { { +s, -s, +s }, {  0.f, -1.f,  0.f }, { 1.f, 0.f } },
+        { { -s, -s, +s }, {  0.f, -1.f,  0.f }, { 0.f, 0.f } }
+    };
+
+    uint16_t indices[] = {
+         0,  1,  2,  2,  3,  0, /* front */
+         4,  5,  6,  6,  7,  4, /* right */
+         8,  9, 10, 10, 11,  8, /* back */
+        12, 13, 14, 14, 15, 12, /* left */
+        16, 17, 18, 18, 19, 16, /* top */
+        20, 21, 22, 22, 23, 20, /* bottom */
     };
     
-    // Create a vertex buffer, and initialize it with the quadVertices array
+    // MARK: Create buffers
     m_vertices = m_device->newBuffer(quadVertices, sizeof(quadVertices), MTL::ResourceStorageModeShared);
-    
-    m_verticesCount = sizeof(quadVertices) / sizeof(Vertex);
+    m_indexBuffer = m_device->newBuffer(indices, sizeof(indices), MTL::ResourceStorageModeShared);
+    m_instanceDataBuffer = m_device->newBuffer(sizeof(InstanceData), MTL::ResourceStorageModeShared);
+    m_cameraDataBuffer = m_device->newBuffer(sizeof(CameraData), MTL::ResourceStorageModeShared);
     
     //MARK: Create render pipeline
     
@@ -154,26 +184,31 @@ void Renderer::windowSizeWillChange(unsigned int width, unsigned int height) {
 void Renderer::draw(MTL::RenderPassDescriptor *currentRPD, MTL::Drawable* currentDrawable) {
     NS::AutoreleasePool* pPool = NS::AutoreleasePool::alloc()->init();
     
-    Vertex *quad  = reinterpret_cast<Vertex *>(m_vertices->contents());
+    using namespace simd;
     
-    for ( int i = 0; i < m_verticesCount; i++ ) {
-        if ( _right )
-            quad[i].position.x += 10;
-        else
-            quad[i].position.x -= 10;
-    }
+    m_angle += 0.002f;
+    const float scl = 5.f;
     
-    if ( quad[0].position.x >= 500 ) {
-        _right = false;
-    }
-    if ( quad[1].position.x <= -500 ) {
-        _right = true;
-    }
+    // Apply changes to the instance
+    InstanceData *instanceData = reinterpret_cast<InstanceData *>(m_instanceDataBuffer->contents());
     
-    // didModifyRange is only necessary for managed resource mode as the CPU and GPU both hold a copy of the data and syncing is necessary
-    // However, this mode is not supported on Apple GPUs since they used an unified memory model.
-    // Shared memory model is compatible on all GPUs and also doesn't need syncing, so remove the line bellow.
-    //    m_vertices->didModifyRange(NS::Range::Make(0, m_verticesCount));
+    float3 objectPosition = { 0.f, 0.f, 0.f };
+    
+    float4x4 scale = Math3D::makeScale( (float3){ scl, scl, scl } );
+    float4x4 rt = Math3D::makeTranslate( objectPosition );
+    float4x4 rr1 = Math3D::makeYRotate( -m_angle );
+    float4x4 rr0 = Math3D::makeXRotate( m_angle );
+    float4x4 rtInv = Math3D::makeTranslate( { -objectPosition.x, -objectPosition.y, -objectPosition.z } );
+    float4x4 fullObjectRot = rt * rr1 * rr0 * rtInv * scale;
+    
+    instanceData->transform = fullObjectRot;
+    instanceData->normalTransform = Math3D::discardTranslation(instanceData->transform);
+    
+    // Apply rotations to the world and the camera
+    CameraData *cameraData = reinterpret_cast<CameraData *>(m_cameraDataBuffer->contents());
+    cameraData->perspectiveTranform = Math3D::makePerspective(45.f * M_PI / 180.f, 1.f, 0.03f, 500.0f);
+    cameraData->worldTranform = Math3D::makeTranslate( (float3){0.f, 0.f, -50.f} );
+    cameraData->worldNormalTranform = Math3D::discardTranslation(cameraData->worldTranform);
     
     // Create a new command buffer for each render pass to the current drawable.
     MTL::CommandBuffer *commandBuffer = m_commandQueue->commandBuffer();
@@ -194,17 +229,24 @@ void Renderer::draw(MTL::RenderPassDescriptor *currentRPD, MTL::Drawable* curren
         // Pass in the parameter data.
         renderEncoder->setVertexBuffer(m_vertices, 0, VertexInputIndexVertices);
         
-        renderEncoder->setVertexBytes(&m_windowSize,
-                                      sizeof(m_windowSize),
-                                      VertexInputIndexViewportSize);
+        renderEncoder->setVertexBuffer(m_instanceDataBuffer, 0, VertexInputIndexInstanceData);
+        
+        renderEncoder->setVertexBuffer(m_cameraDataBuffer, 0, VertexInputIndexCameraData);
          
-        // Set the texture object.  The AAPLTextureIndexBaseColor enum value corresponds
-        //  to the 'colorMap' argument in the 'samplingShader' function because its
-        //   texture attribute qualifier also uses AAPLTextureIndexBaseColor for its index.
         renderEncoder->setFragmentTexture(m_texture, TextureIndexBaseColor);
         
-        // Draw the triangle.
-        renderEncoder->drawPrimitives(MTL::PrimitiveTypeTriangle, NS::UInteger(0), m_verticesCount);
+        // Set modes for 3D rendering
+        renderEncoder->setCullMode( MTL::CullModeBack );
+        renderEncoder->setFrontFacingWinding( MTL::Winding::WindingCounterClockwise );
+        
+        // Draw the triangles.
+        renderEncoder->drawIndexedPrimitives(MTL::PrimitiveType::PrimitiveTypeTriangle,
+                                             6*6,
+                                             MTL::IndexType::IndexTypeUInt16,
+                                             m_indexBuffer,
+                                             0,
+                                             1);
+        
         renderEncoder->endEncoding();
         
         commandBuffer->presentDrawable(currentDrawable);

@@ -41,11 +41,20 @@ private:
     /// Combined depth and stenctil object
     MTL::DepthStencilState* m_depthState;
     
-    /// Metal texture
+    /// Metal texture buffer
     MTL::Texture *m_texture;
     
-    /// Vertex data
+    /// Vertex data buffer
     MTL::Buffer *m_vertices;
+    
+    /// Indices buffer
+    MTL::Buffer* m_indexBuffer;
+    
+    /// Instance data buffer
+    MTL::Buffer* m_instanceDataBuffer;
+    
+    /// Camera data buffer
+    MTL::Buffer* m_cameraDataBuffer;
     
     /// Number of vertices
     NS::UInteger m_verticesCount;
@@ -56,7 +65,7 @@ private:
     /// The atlas we're using to load the textures from.
     TextureAtlas *m_atlas;
     
-    bool _right = false;
+    float m_angle = 0.0;
 };
 
 #endif /* Renderer_hpp */

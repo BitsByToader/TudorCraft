@@ -8,17 +8,10 @@
 #include "Math3D.hpp"
 
 namespace Math3D {
+    
+
     constexpr simd::float3 add( const simd::float3& a, const simd::float3& b ) {
         return { a.x + b.x, a.y + b.y, a.z + b.z };
-    }
-
-    constexpr simd_float4x4 makeIdentity() {
-        using simd::float4;
-        
-        return (simd_float4x4){ (float4){ 1.f, 0.f, 0.f, 0.f },
-            (float4){ 0.f, 1.f, 0.f, 0.f },
-            (float4){ 0.f, 0.f, 1.f, 0.f },
-            (float4){ 0.f, 0.f, 0.f, 1.f } };
     }
 
     simd::float4x4 makePerspective( float fovRadians, float aspect, float znear, float zfar ) {
@@ -81,5 +74,9 @@ namespace Math3D {
                            (float4){ 0, v.y, 0, 0 },
                            (float4){ 0, 0, v.z, 0 },
                            (float4){ 0, 0, 0, 1.0 });
+    }
+
+    simd::float3x3 discardTranslation( const simd::float4x4& m ) {
+        return simd_matrix( m.columns[0].xyz, m.columns[1].xyz, m.columns[2].xyz );
     }
 }
