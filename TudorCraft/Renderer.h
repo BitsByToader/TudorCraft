@@ -13,6 +13,8 @@
 
 #include "TextureAtlas.hpp"
 
+#define MAX_FRAMES_IN_FLIGHT 3
+
 class Renderer {
 public:
     Renderer( MTL::Device* pDevice );
@@ -51,7 +53,7 @@ private:
     MTL::Buffer* m_indexBuffer;
     
     /// Instance data buffer
-    MTL::Buffer* m_instanceDataBuffer;
+    MTL::Buffer* m_instanceDataBuffers[MAX_FRAMES_IN_FLIGHT];
     
     /// Camera data buffer
     MTL::Buffer* m_cameraDataBuffer;
@@ -65,7 +67,11 @@ private:
     /// The atlas we're using to load the textures from.
     TextureAtlas *m_atlas;
     
-    float m_angle = 0.0;
+    /// Semaphore used for synchronizing the CPU and GPU
+    dispatch_semaphore_t m_semaphore;
+    
+    /// Frame we're currently working on
+    int m_frame;
 };
 
 #endif /* Renderer_hpp */

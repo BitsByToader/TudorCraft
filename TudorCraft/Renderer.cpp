@@ -39,8 +39,12 @@ Renderer::Renderer( MTL::Device* pDevice )
     
     AAPL_PRINT("Metal device used to render: ", m_device->name()->utf8String());
     
+    m_semaphore = dispatch_semaphore_create(MAX_FRAMES_IN_FLIGHT);
+    
     // Create a blank texture atlas
     m_atlas = new TextureAtlas();
+    
+    m_frame = 0;
     
     loadMetal();
 }
@@ -49,6 +53,15 @@ Renderer::~Renderer() {
     m_pipelineState->release();
     m_commandQueue->release();
     m_device->release();
+    m_vertices->release();
+    m_indexBuffer->release();
+    
+    for ( int i = 0; i < MAX_FRAMES_IN_FLIGHT; i++ ) {
+        m_instanceDataBuffers[i]->release();
+    }
+    
+    m_depthState->release();
+    m_texture->release();
     
     delete m_atlas;
 }
@@ -84,7 +97,7 @@ void Renderer::loadMetal() {
     // MARK: Create texture
     m_texture = loadTextureUsingAtlas();
     
-    float s = 1.f;
+    float s = 0.5f;
     
     // MARK: Create vertices
     Vertex quadVertices[] =
@@ -134,8 +147,12 @@ void Renderer::loadMetal() {
     // MARK: Create buffers
     m_vertices = m_device->newBuffer(quadVertices, sizeof(quadVertices), MTL::ResourceStorageModeShared);
     m_indexBuffer = m_device->newBuffer(indices, sizeof(indices), MTL::ResourceStorageModeShared);
-    m_instanceDataBuffer = m_device->newBuffer(sizeof(InstanceData), MTL::ResourceStorageModeShared);
     m_cameraDataBuffer = m_device->newBuffer(sizeof(CameraData), MTL::ResourceStorageModeShared);
+    
+    // Create a buffer for each frame we can work independently
+    for ( int i = 0; i < MAX_FRAMES_IN_FLIGHT; i++ ) {
+        m_instanceDataBuffers[i] = m_device->newBuffer(2 * sizeof(InstanceData), MTL::ResourceStorageModeShared);
+    }
     
     //MARK: Create render pipeline
     
@@ -150,7 +167,7 @@ void Renderer::loadMetal() {
     
     // Configure a pipeline descrmiptor that is used to create a pipeline state.
     MTL::RenderPipelineDescriptor *pipeLineStateDescriptor = MTL::RenderPipelineDescriptor::alloc()->init();
-    pipeLineStateDescriptor->setLabel(AAPLSTR("My super awesome pipeline!"));
+    pipeLineStateDescriptor->setLabel(AAPLSTR("MySuperAwesomePipeline!"));
     pipeLineStateDescriptor->setVertexFunction(vertexFunction);
     pipeLineStateDescriptor->setFragmentFunction(fragmentFunction);
     pipeLineStateDescriptor->colorAttachments()->object(NS::UInteger(0))->setPixelFormat(MTL::PixelFormatBGRA8Unorm_sRGB);
@@ -186,33 +203,46 @@ void Renderer::draw(MTL::RenderPassDescriptor *currentRPD, MTL::Drawable* curren
     
     using namespace simd;
     
-    m_angle += 0.002f;
-    const float scl = 5.f;
+    const float scl = 10.f;
+    
+    m_frame = (m_frame + 1) % MAX_FRAMES_IN_FLIGHT;
+    MTL::Buffer* instanceDataBuffer = m_instanceDataBuffers[m_frame];
+    
+    // Create a new command buffer for each render pass to the current drawable.
+    MTL::CommandBuffer *commandBuffer = m_commandQueue->commandBuffer();
+    commandBuffer->setLabel(AAPLSTR("MyAwesomeCommand"));
+    
+    // Wait for the instance buffer to be available
+    dispatch_semaphore_wait( m_semaphore, DISPATCH_TIME_FOREVER );
+    Renderer* pRenderer = this;
+    commandBuffer->addCompletedHandler( ^void( MTL::CommandBuffer* pCmd ) {
+        dispatch_semaphore_signal( pRenderer->m_semaphore );
+    });
     
     // Apply changes to the instance
-    InstanceData *instanceData = reinterpret_cast<InstanceData *>(m_instanceDataBuffer->contents());
+    InstanceData *instanceData = reinterpret_cast<InstanceData *>(instanceDataBuffer->contents());
     
-    float3 objectPosition = { 0.f, 0.f, 0.f };
+    float3 object1Position = { 0.f, 0.f, 0.f };
+    float3 object2Position = { 10.f, 0.f, 0.f };
     
     float4x4 scale = Math3D::makeScale( (float3){ scl, scl, scl } );
-    float4x4 rt = Math3D::makeTranslate( objectPosition );
-    float4x4 rr1 = Math3D::makeYRotate( -m_angle );
-    float4x4 rr0 = Math3D::makeXRotate( m_angle );
-    float4x4 rtInv = Math3D::makeTranslate( { -objectPosition.x, -objectPosition.y, -objectPosition.z } );
-    float4x4 fullObjectRot = rt * rr1 * rr0 * rtInv * scale;
+    float4x4 rt1 = Math3D::makeTranslate( object1Position );
+    float4x4 rt2 = Math3D::makeTranslate( object2Position );
     
-    instanceData->transform = fullObjectRot;
-    instanceData->normalTransform = Math3D::discardTranslation(instanceData->transform);
+    float4x4 fullObject1Rot = rt1 * scale;
+    float4x4 fullObject2Rot = rt2 *  scale;
+    
+    instanceData[0].transform = fullObject1Rot;
+    instanceData[0].normalTransform = Math3D::discardTranslation(instanceData[0].transform);
+    
+    instanceData[1].transform = fullObject2Rot;
+    instanceData[1].normalTransform = Math3D::discardTranslation(instanceData[1].transform);
     
     // Apply rotations to the world and the camera
     CameraData *cameraData = reinterpret_cast<CameraData *>(m_cameraDataBuffer->contents());
     cameraData->perspectiveTranform = Math3D::makePerspective(45.f * M_PI / 180.f, 1.f, 0.03f, 500.0f);
     cameraData->worldTranform = Math3D::makeTranslate( (float3){0.f, 0.f, -50.f} );
     cameraData->worldNormalTranform = Math3D::discardTranslation(cameraData->worldTranform);
-    
-    // Create a new command buffer for each render pass to the current drawable.
-    MTL::CommandBuffer *commandBuffer = m_commandQueue->commandBuffer();
-    commandBuffer->setLabel(AAPLSTR("Texturing Command"));
     
     if ( currentRPD != nullptr ) {
         // Create a render command encoder.
@@ -229,7 +259,7 @@ void Renderer::draw(MTL::RenderPassDescriptor *currentRPD, MTL::Drawable* curren
         // Pass in the parameter data.
         renderEncoder->setVertexBuffer(m_vertices, 0, VertexInputIndexVertices);
         
-        renderEncoder->setVertexBuffer(m_instanceDataBuffer, 0, VertexInputIndexInstanceData);
+        renderEncoder->setVertexBuffer(instanceDataBuffer, 0, VertexInputIndexInstanceData);
         
         renderEncoder->setVertexBuffer(m_cameraDataBuffer, 0, VertexInputIndexCameraData);
          
@@ -240,12 +270,12 @@ void Renderer::draw(MTL::RenderPassDescriptor *currentRPD, MTL::Drawable* curren
         renderEncoder->setFrontFacingWinding( MTL::Winding::WindingCounterClockwise );
         
         // Draw the triangles.
-        renderEncoder->drawIndexedPrimitives(MTL::PrimitiveType::PrimitiveTypeTriangle,
-                                             6*6,
-                                             MTL::IndexType::IndexTypeUInt16,
-                                             m_indexBuffer,
-                                             0,
-                                             1);
+        renderEncoder->drawIndexedPrimitives(MTL::PrimitiveType::PrimitiveTypeTriangle, // Primitive type
+                                             36, // Index count
+                                             MTL::IndexType::IndexTypeUInt16, // Index type
+                                             m_indexBuffer, // Index buffer
+                                             0, // Index buffer offset
+                                             2); // Instance count
         
         renderEncoder->endEncoding();
         
