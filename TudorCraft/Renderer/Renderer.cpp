@@ -33,8 +33,10 @@
 #include "ShaderTypes.h"
 #include "Math3D.hpp"
 
-Renderer::Renderer( MTL::Device* pDevice )
-: m_device( pDevice->retain() ) {
+Renderer::Renderer() {
+    m_device = MTL::CreateSystemDefaultDevice();
+    m_device->retain();
+    
     m_commandQueue = m_device->newCommandQueue();
     
     AAPL_PRINT("Metal device used to render: ", m_device->name()->utf8String());
@@ -147,11 +149,15 @@ void Renderer::loadMetal() {
     // MARK: Create buffers
     m_vertices = m_device->newBuffer(quadVertices, sizeof(quadVertices), MTL::ResourceStorageModeShared);
     m_indexBuffer = m_device->newBuffer(indices, sizeof(indices), MTL::ResourceStorageModeShared);
-    m_cameraDataBuffer = m_device->newBuffer(sizeof(CameraData), MTL::ResourceStorageModeShared);
+    
+    // Create the buffer and the perspective matrix once
+    m_cameraDataBuffer = m_de`vice->newBuffer(sizeof(CameraData), MTL::ResourceStorageModeShared);
+    CameraData *cameraData = reinterpret_cast<CameraData *>(m_cameraDataBuffer->contents());
+    cameraData->perspectiveTranform = Math3D::makePerspective(90.f * M_PI / 180.f, m_windowSize.x / m_windowSize.y, 0.03f, 500.0f);
     
     // Create a buffer for each frame we can work independently
     for ( int i = 0; i < MAX_FRAMES_IN_FLIGHT; i++ ) {
-        m_instanceDataBuffers[i] = m_device->newBuffer(2 * sizeof(InstanceData), MTL::ResourceStorageModeShared);
+        m_instanceDataBuffers[i] = m_device->newBuffer(16 * 16 * 256 * sizeof(InstanceData), MTL::ResourceStorageModeShared);
     }
     
     //MARK: Create render pipeline
@@ -196,14 +202,16 @@ void Renderer::loadMetal() {
 void Renderer::windowSizeWillChange(unsigned int width, unsigned int height) {
     m_windowSize.x = width;
     m_windowSize.y = height;
+    CameraData *cameraData = reinterpret_cast<CameraData *>(m_cameraDataBuffer->contents());
+    cameraData->perspectiveTranform = Math3D::makePerspective(90.f * M_PI / 180.f, m_windowSize.x / m_windowSize.y, 0.03f, 500.0f);
 };
 
 void Renderer::draw(MTL::RenderPassDescriptor *currentRPD, MTL::Drawable* currentDrawable) {
     NS::AutoreleasePool* pPool = NS::AutoreleasePool::alloc()->init();
     
     using namespace simd;
-    
-    const float scl = 10.f;
+
+    const float scl = 5.f;
     
     m_frame = (m_frame + 1) % MAX_FRAMES_IN_FLIGHT;
     MTL::Buffer* instanceDataBuffer = m_instanceDataBuffers[m_frame];
@@ -219,29 +227,34 @@ void Renderer::draw(MTL::RenderPassDescriptor *currentRPD, MTL::Drawable* curren
         dispatch_semaphore_signal( pRenderer->m_semaphore );
     });
     
-    // Apply changes to the instance
-    InstanceData *instanceData = reinterpret_cast<InstanceData *>(instanceDataBuffer->contents());
-    
-    float3 object1Position = { 0.f, 0.f, 0.f };
-    float3 object2Position = { 10.f, 0.f, 0.f };
-    
-    float4x4 scale = Math3D::makeScale( (float3){ scl, scl, scl } );
-    float4x4 rt1 = Math3D::makeTranslate( object1Position );
-    float4x4 rt2 = Math3D::makeTranslate( object2Position );
-    
-    float4x4 fullObject1Rot = rt1 * scale;
-    float4x4 fullObject2Rot = rt2 *  scale;
-    
-    instanceData[0].transform = fullObject1Rot;
-    instanceData[0].normalTransform = Math3D::discardTranslation(instanceData[0].transform);
-    
-    instanceData[1].transform = fullObject2Rot;
-    instanceData[1].normalTransform = Math3D::discardTranslation(instanceData[1].transform);
+    // Apply changes to the instances only if there was a change
+    // On any change, recalculateBlocks will be reset to MAX_FRAMES_IN_FLIGHT
+    // Then, for every version of our instanceBuffer we'll recalculate the blocks.
+    if ( recalculateBlocks ) {
+        InstanceData *instanceData = reinterpret_cast<InstanceData *>(instanceDataBuffer->contents());
+        
+        const float4x4 scale = Math3D::makeScale( (float3){ scl, scl, scl } );
+        
+        for ( int i = 0; i < 16; i++ ) {
+            for ( int j = 0; j < 16; j++ ) {
+                for ( int k = 0; k < 256; k++ ) {
+                    int instanceIndex = k*256 + j * 16 + i;
+                    
+                    float4x4 rt = Math3D::makeTranslate((float3) { 5.f * i, 5.f*k, -(5.f * j + 20.f) } );
+                    float4x4 fullObjectRot = rt * scale;
+                    
+                    instanceData[instanceIndex].transform = fullObjectRot;
+                    instanceData[instanceIndex].normalTransform = Math3D::discardTranslation(instanceData[instanceIndex].transform);
+                }
+            }
+        }
+        
+        --recalculateBlocks;
+    }
     
     // Apply rotations to the world and the camera
     CameraData *cameraData = reinterpret_cast<CameraData *>(m_cameraDataBuffer->contents());
-    cameraData->perspectiveTranform = Math3D::makePerspective(45.f * M_PI / 180.f, 1.f, 0.03f, 500.0f);
-    cameraData->worldTranform = Math3D::makeTranslate( (float3){0.f, 0.f, -50.f} );
+    cameraData->worldTranform = Math3D::makeXRotate4x4(m_pitchAngle) * Math3D::makeYRotate4x4(m_yawAngle) * Math3D::makeTranslate( m_playerPos );
     cameraData->worldNormalTranform = Math3D::discardTranslation(cameraData->worldTranform);
     
     if ( currentRPD != nullptr ) {
@@ -265,17 +278,20 @@ void Renderer::draw(MTL::RenderPassDescriptor *currentRPD, MTL::Drawable* curren
          
         renderEncoder->setFragmentTexture(m_texture, TextureIndexBaseColor);
         
+        // TODO: This might need some optimization?
+        renderEncoder->setFragmentBuffer(m_cameraDataBuffer, 0, VertexInputIndexCameraData);
+        
         // Set modes for 3D rendering
         renderEncoder->setCullMode( MTL::CullModeBack );
         renderEncoder->setFrontFacingWinding( MTL::Winding::WindingCounterClockwise );
         
-        // Draw the triangles.
+        // Draw our cubes.
         renderEncoder->drawIndexedPrimitives(MTL::PrimitiveType::PrimitiveTypeTriangle, // Primitive type
                                              36, // Index count
                                              MTL::IndexType::IndexTypeUInt16, // Index type
                                              m_indexBuffer, // Index buffer
                                              0, // Index buffer offset
-                                             2); // Instance count
+                                             16 * 16 * 256); // Instance count
         
         renderEncoder->endEncoding();
         
@@ -286,3 +302,48 @@ void Renderer::draw(MTL::RenderPassDescriptor *currentRPD, MTL::Drawable* curren
     
     pPool->release();
 }
+
+void Renderer::forward() {
+    m_playerPos.x += sinf(-m_yawAngle);
+    
+    m_playerPos.z += cosf(-m_yawAngle) * cosf(-m_pitchAngle);
+    m_playerPos.y += cosf(-m_yawAngle) * sinf(-m_pitchAngle);
+};
+void Renderer::backward() {
+    m_playerPos.x -= sinf(-m_yawAngle);
+    
+    m_playerPos.z -= cosf(-m_yawAngle) * cosf(-m_pitchAngle);
+    m_playerPos.y -= cosf(-m_yawAngle) * sinf(-m_pitchAngle);
+};
+void Renderer::left() {
+    m_playerPos.x -= -cosf(-m_yawAngle);
+    m_playerPos.z -= sinf(-m_yawAngle);
+};
+void Renderer::right() {
+    m_playerPos.x += -cosf(-m_yawAngle);
+    m_playerPos.z += sinf(-m_yawAngle);
+};
+
+void Renderer::up() {
+    m_playerPos.y -= 1.f;
+};
+
+void Renderer::down() {
+    m_playerPos.y += 1.f;
+};
+
+void Renderer::lookUp() {
+    m_pitchAngle += 0.025f;
+};
+
+void Renderer::lookDown() {
+    m_pitchAngle -= 0.025f;
+};
+
+void Renderer::lookRight() {
+    m_yawAngle += 0.025f;
+};
+
+void Renderer::lookLeft() {
+    m_yawAngle -= 0.025f;
+};

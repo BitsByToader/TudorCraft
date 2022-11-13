@@ -17,7 +17,7 @@
 
 class Renderer {
 public:
-    Renderer( MTL::Device* pDevice );
+    Renderer();
     ~Renderer();
     
     void loadMetal();
@@ -27,6 +27,18 @@ public:
     void windowSizeWillChange(unsigned int width, unsigned int height);
     
     void draw(MTL::RenderPassDescriptor *currentRPD, MTL::Drawable* currentDrawable);
+    
+    void forward();
+    void backward();
+    void left();
+    void right();
+    void up();
+    void down();
+    
+    void lookUp();
+    void lookDown();
+    void lookRight();
+    void lookLeft();
 
 private:
     dispatch_semaphore_t m_inFlightSemaphore;
@@ -72,6 +84,13 @@ private:
     
     /// Frame we're currently working on
     int m_frame;
+    
+    float m_yawAngle = 0.f;
+    float m_pitchAngle = 0.f;
+    
+    simd::float3 m_playerPos = (simd::float3) { 0.f, 0.f, 0.0f };
+    
+    int recalculateBlocks = MAX_FRAMES_IN_FLIGHT;
 };
 
 #endif /* Renderer_hpp */

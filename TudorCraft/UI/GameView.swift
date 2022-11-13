@@ -13,9 +13,10 @@ import MetalKit
 
 struct GameView: NSViewControllerRepresentable {
     typealias NSViewControllerType = GameViewController
+    var controller: GameViewController
     
     func makeNSViewController(context: Context) -> GameViewController {
-        return GameViewController(nibName: nil, bundle: nil)
+        return controller
     }
     
     func updateNSViewController(_ nsViewController: GameViewController, context: Context) {
@@ -26,8 +27,10 @@ struct GameView: NSViewControllerRepresentable {
 
 #if os(iOS)
 struct GameView: UIViewControllerRepresentable {
+    var controller: GameViewController
+    
     func makeUIViewController(context: Context) -> GameViewController {
-        return GameViewController(nibName: nil, bundle: nil)
+        return controller
     }
     
     func updateUIViewController(_ nsViewController: GameViewController, context: Context) {

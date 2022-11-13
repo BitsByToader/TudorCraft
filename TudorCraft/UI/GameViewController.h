@@ -41,6 +41,8 @@
 @interface GameViewController : PlatformViewController <MTKViewDelegate>
 
 - (id) init;
+- (void) keyPress: (UInt16) key;
+- (void) mouseMoved: (CGFloat) x newY: (CGFloat) y;
 
 @end
 

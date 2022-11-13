@@ -86,25 +86,14 @@
 		8B1FF3AC29130D5500A9C095 /* TudorCraft */ = {
 			isa = PBXGroup;
 			children = (
-				8B04CBB029198B7500C54F7B /* test.png */,
-				8B1FF3AD29130D5500A9C095 /* TudorCraftApp.swift */,
-				8B1FF3AF29130D5500A9C095 /* ContentView.swift */,
-				8B1FF3BC29130F4400A9C095 /* GameView.swift */,
-				8B9B832B29158E7300FB1030 /* AAPLUtilities.h */,
-				8B1FF3BF2913142500A9C095 /* Renderer.cpp */,
-				8B1FF3C02913142500A9C095 /* Renderer.h */,
-				8B53B3E4291697AC00713715 /* TextureAtlas.cpp */,
-				8B53B3E5291697AC00713715 /* TextureAtlas.hpp */,
-				8B9B832C291594DC00FB1030 /* ShaderTypes.h */,
-				8B9B832D2915951E00FB1030 /* Shaders.metal */,
-				8B2B7A8E2917C51800916671 /* Math3D.cpp */,
-				8B2B7A8F2917C51800916671 /* Math3D.hpp */,
-				8B9B83232915290F00FB1030 /* GameViewController.h */,
-				8B9B8321291528F400FB1030 /* GameViewController.mm */,
+				8B1FF3BE2913142500A9C095 /* TudorCraft-Bridging-Header.h */,
+				8B366B72291FE96A00BC5427 /* Utilities */,
+				8B366B6F291FE81900BC5427 /* UI */,
+				8B366B71291FE8CB00BC5427 /* Renderer */,
+				8B366B70291FE87300BC5427 /* Textures */,
 				8B1FF3B129130D5700A9C095 /* Assets.xcassets */,
 				8B1FF3B329130D5700A9C095 /* TudorCraft.entitlements */,
 				8B1FF3B429130D5700A9C095 /* Preview Content */,
-				8B1FF3BE2913142500A9C095 /* TudorCraft-Bridging-Header.h */,
 			);
 			path = TudorCraft;
 			sourceTree = "<group>";
@@ -126,6 +115,49 @@
 				8B1FF3C3291315D300A9C095 /* Foundation.framework */,
 			);
 			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		8B366B6F291FE81900BC5427 /* UI */ = {
+			isa = PBXGroup;
+			children = (
+				8B1FF3AD29130D5500A9C095 /* TudorCraftApp.swift */,
+				8B1FF3AF29130D5500A9C095 /* ContentView.swift */,
+				8B1FF3BC29130F4400A9C095 /* GameView.swift */,
+				8B9B83232915290F00FB1030 /* GameViewController.h */,
+				8B9B8321291528F400FB1030 /* GameViewController.mm */,
+			);
+			path = UI;
+			sourceTree = "<group>";
+		};
+		8B366B70291FE87300BC5427 /* Textures */ = {
+			isa = PBXGroup;
+			children = (
+				8B04CBB029198B7500C54F7B /* test.png */,
+				8B53B3E4291697AC00713715 /* TextureAtlas.cpp */,
+				8B53B3E5291697AC00713715 /* TextureAtlas.hpp */,
+			);
+			path = Textures;
+			sourceTree = "<group>";
+		};
+		8B366B71291FE8CB00BC5427 /* Renderer */ = {
+			isa = PBXGroup;
+			children = (
+				8B9B832C291594DC00FB1030 /* ShaderTypes.h */,
+				8B1FF3C02913142500A9C095 /* Renderer.h */,
+				8B1FF3BF2913142500A9C095 /* Renderer.cpp */,
+				8B9B832D2915951E00FB1030 /* Shaders.metal */,
+			);
+			path = Renderer;
+			sourceTree = "<group>";
+		};
+		8B366B72291FE96A00BC5427 /* Utilities */ = {
+			isa = PBXGroup;
+			children = (
+				8B9B832B29158E7300FB1030 /* AAPLUtilities.h */,
+				8B2B7A8F2917C51800916671 /* Math3D.hpp */,
+				8B2B7A8E2917C51800916671 /* Math3D.cpp */,
+			);
+			path = Utilities;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
