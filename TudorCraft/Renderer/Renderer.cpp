@@ -151,7 +151,7 @@ void Renderer::loadMetal() {
     m_indexBuffer = m_device->newBuffer(indices, sizeof(indices), MTL::ResourceStorageModeShared);
     
     // Create the buffer and the perspective matrix once
-    m_cameraDataBuffer = m_de`vice->newBuffer(sizeof(CameraData), MTL::ResourceStorageModeShared);
+    m_cameraDataBuffer = m_device->newBuffer(sizeof(CameraData), MTL::ResourceStorageModeShared);
     CameraData *cameraData = reinterpret_cast<CameraData *>(m_cameraDataBuffer->contents());
     cameraData->perspectiveTranform = Math3D::makePerspective(90.f * M_PI / 180.f, m_windowSize.x / m_windowSize.y, 0.03f, 500.0f);
     
