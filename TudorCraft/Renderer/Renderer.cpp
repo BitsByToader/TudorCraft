@@ -93,6 +93,26 @@ MTL::Texture *Renderer::loadTextureUsingAtlas() {
     return texture;
 }
 
+simd::float4x4 moveFaceToBack() {
+    return Math3D::makeTranslate((simd::float3) { 0.f, 0.f, -1.f } );
+}
+
+simd::float4x4 moveFaceToRight() {
+    return Math3D::makeYRotate4x4(M_PI/2);
+}
+
+simd::float4x4 moveFaceToLeft() {
+    return Math3D::makeYRotate4x4(3 * M_PI/2);
+}
+
+simd::float4x4 moveFaceToTop() {
+    return Math3D::makeXRotate4x4(M_PI/2);
+}
+
+simd::float4x4 moveFaceToBottom() {
+    return Math3D::makeXRotate4x4(3 * M_PI/2);
+}
+
 void Renderer::loadMetal() {
     NS::AutoreleasePool* pPool = NS::AutoreleasePool::alloc()->init();
     
@@ -106,44 +126,14 @@ void Renderer::loadMetal() {
     {
         //                                         Texture
         //   Positions           Normals         Coordinates
-        { { -s, -s, +s }, {  0.f,  0.f,  1.f }, { 0.f, 1.f } },
-        { { +s, -s, +s }, {  0.f,  0.f,  1.f }, { 1.f, 1.f } },
-        { { +s, +s, +s }, {  0.f,  0.f,  1.f }, { 1.f, 0.f } },
-        { { -s, +s, +s }, {  0.f,  0.f,  1.f }, { 0.f, 0.f } },
-
-        { { +s, -s, +s }, {  1.f,  0.f,  0.f }, { 0.f, 1.f } },
-        { { +s, -s, -s }, {  1.f,  0.f,  0.f }, { 1.f, 1.f } },
-        { { +s, +s, -s }, {  1.f,  0.f,  0.f }, { 1.f, 0.f } },
-        { { +s, +s, +s }, {  1.f,  0.f,  0.f }, { 0.f, 0.f } },
-
-        { { +s, -s, -s }, {  0.f,  0.f, -1.f }, { 0.f, 1.f } },
-        { { -s, -s, -s }, {  0.f,  0.f, -1.f }, { 1.f, 1.f } },
-        { { -s, +s, -s }, {  0.f,  0.f, -1.f }, { 1.f, 0.f } },
-        { { +s, +s, -s }, {  0.f,  0.f, -1.f }, { 0.f, 0.f } },
-
-        { { -s, -s, -s }, { -1.f,  0.f,  0.f }, { 0.f, 1.f } },
-        { { -s, -s, +s }, { -1.f,  0.f,  0.f }, { 1.f, 1.f } },
-        { { -s, +s, +s }, { -1.f,  0.f,  0.f }, { 1.f, 0.f } },
-        { { -s, +s, -s }, { -1.f,  0.f,  0.f }, { 0.f, 0.f } },
-
-        { { -s, +s, +s }, {  0.f,  1.f,  0.f }, { 0.f, 1.f } },
-        { { +s, +s, +s }, {  0.f,  1.f,  0.f }, { 1.f, 1.f } },
-        { { +s, +s, -s }, {  0.f,  1.f,  0.f }, { 1.f, 0.f } },
-        { { -s, +s, -s }, {  0.f,  1.f,  0.f }, { 0.f, 0.f } },
-
-        { { -s, -s, -s }, {  0.f, -1.f,  0.f }, { 0.f, 1.f } },
-        { { +s, -s, -s }, {  0.f, -1.f,  0.f }, { 1.f, 1.f } },
-        { { +s, -s, +s }, {  0.f, -1.f,  0.f }, { 1.f, 0.f } },
-        { { -s, -s, +s }, {  0.f, -1.f,  0.f }, { 0.f, 0.f } }
+        { { -s, -s, +s }, {  0.f,  0.f,  1.f }, { 0.f, 1.f } }, // 0
+        { { +s, -s, +s }, {  0.f,  0.f,  1.f }, { 1.f, 1.f } }, // 1
+        { { +s, +s, +s }, {  0.f,  0.f,  1.f }, { 1.f, 0.f } }, // 2
+        { { -s, +s, +s }, {  0.f,  0.f,  1.f }, { 0.f, 0.f } }, // 3
     };
 
     uint16_t indices[] = {
          0,  1,  2,  2,  3,  0, /* front */
-         4,  5,  6,  6,  7,  4, /* right */
-         8,  9, 10, 10, 11,  8, /* back */
-        12, 13, 14, 14, 15, 12, /* left */
-        16, 17, 18, 18, 19, 16, /* top */
-        20, 21, 22, 22, 23, 20, /* bottom */
     };
     
     // MARK: Create buffers
@@ -152,12 +142,11 @@ void Renderer::loadMetal() {
     
     // Create the buffer and the perspective matrix once
     m_cameraDataBuffer = m_device->newBuffer(sizeof(CameraData), MTL::ResourceStorageModeShared);
-    CameraData *cameraData = reinterpret_cast<CameraData *>(m_cameraDataBuffer->contents());
-    cameraData->perspectiveTranform = Math3D::makePerspective(90.f * M_PI / 180.f, m_windowSize.x / m_windowSize.y, 0.03f, 500.0f);
     
     // Create a buffer for each frame we can work independently
     for ( int i = 0; i < MAX_FRAMES_IN_FLIGHT; i++ ) {
-        m_instanceDataBuffers[i] = m_device->newBuffer(16 * 16 * 256 * sizeof(InstanceData), MTL::ResourceStorageModeShared);
+        // 24 blocks times the number of faces we can possibly have
+        m_instanceDataBuffers[i] = m_device->newBuffer(36 * 6 * sizeof(InstanceData), MTL::ResourceStorageModeShared);
     }
     
     //MARK: Create render pipeline
@@ -227,29 +216,77 @@ void Renderer::draw(MTL::RenderPassDescriptor *currentRPD, MTL::Drawable* curren
         dispatch_semaphore_signal( pRenderer->m_semaphore );
     });
     
-    // Apply changes to the instances only if there was a change
-    // On any change, recalculateBlocks will be reset to MAX_FRAMES_IN_FLIGHT
-    // Then, for every version of our instanceBuffer we'll recalculate the blocks.
-    if ( recalculateBlocks ) {
-        InstanceData *instanceData = reinterpret_cast<InstanceData *>(instanceDataBuffer->contents());
-        
-        const float4x4 scale = Math3D::makeScale( (float3){ scl, scl, scl } );
-        
-        for ( int i = 0; i < 16; i++ ) {
-            for ( int j = 0; j < 16; j++ ) {
-                for ( int k = 0; k < 256; k++ ) {
-                    int instanceIndex = k*256 + j * 16 + i;
+    InstanceData *instanceData = reinterpret_cast<InstanceData *>(instanceDataBuffer->contents());
+    int instanceCount = 0;
+    
+    int limit_x = 4;
+    int limit_y = 3;
+    int limit_z = 3;
+
+    const float4x4 scale = Math3D::makeScale( (float3){ scl, scl, scl } );
+
+    for ( int k = 0; k < limit_y; k++ ) {
+        for ( int i = 0; i < limit_z; i++ ) {
+            for ( int j = 0; j < limit_x; j++ ) {
+                if ( blocks[k * limit_x * limit_z + i*limit_x + j] != 0 ) {
+//                    AAPL_PRINT("Block: ", i, " ", j, " ", k);
+
+                    // Loop through every single block
+                    // Create the main block position
+                    float4x4 blockPositionTranslationMatrix = Math3D::makeTranslate((float3) { 5.f * j, 5.f * k, -(5.f * i) } );
+
+                    if ( i == 0 || blocks[(k * limit_x * limit_z) + ((i-1) * limit_x) + j] == 0 ) {
+//                        AAPL_PRINT("\t Front of block: instance ", instanceCount);
+
+                        // We are at the front of the chunk or there is nothing behind, render the front side of the block
+                        instanceData[instanceCount].transform = blockPositionTranslationMatrix * scale;
+                        instanceData[instanceCount].normalTransform = Math3D::discardTranslation(instanceData[instanceCount].transform);
+                        instanceCount++;
+                    }
+
+                    if ( j == 0 || blocks[(k * limit_x * limit_z) + (i * limit_x) + (j - 1)] == 0 ) {
+//                        AAPL_PRINT("\t Left of block: instance ", instanceCount);
+
+                        // We are to the left of the chunk or there is nothing to the left, render the left side of the block
+                        instanceData[instanceCount].transform = blockPositionTranslationMatrix * scale * moveFaceToLeft();
+                        instanceData[instanceCount].normalTransform = Math3D::discardTranslation(instanceData[instanceCount].transform);
+                        instanceCount++;
+                    }
+
+                    if ( i == limit_z - 1 || blocks[(k * limit_x * limit_z) + ((i+1) * limit_x) + j] == 0 ) {
+//                        AAPL_PRINT("\t Back of block: instance ", instanceCount);
+
+                        // We are in the back of the chunk, render the back side of the block
+                        instanceData[instanceCount].transform = blockPositionTranslationMatrix * scale * moveFaceToBack();
+                        instanceData[instanceCount].normalTransform = Math3D::discardTranslation(instanceData[instanceCount].transform);
+                        instanceCount++;
+                    }
+
+                    if ( j == limit_x - 1 || blocks[(k * limit_x * limit_z) + (i * limit_x) + (j + 1)] == 0 ) {
+//                        AAPL_PRINT("\t Right of block: instance ", instanceCount);
+
+                        // We are at the right of the chunk, render the right side of the block
+                        instanceData[instanceCount].transform = blockPositionTranslationMatrix * scale * moveFaceToRight();
+                        instanceData[instanceCount].normalTransform = Math3D::discardTranslation(instanceData[instanceCount].transform);
+                        instanceCount++;
+                    }
                     
-                    float4x4 rt = Math3D::makeTranslate((float3) { 5.f * i, 5.f*k, -(5.f * j + 20.f) } );
-                    float4x4 fullObjectRot = rt * scale;
-                    
-                    instanceData[instanceIndex].transform = fullObjectRot;
-                    instanceData[instanceIndex].normalTransform = Math3D::discardTranslation(instanceData[instanceIndex].transform);
+                    if ( k == limit_y - 1 || blocks[((k+1) * limit_x * limit_z) + (i * limit_x) + j] == 0 ) {
+//                        AAPL_PRINT("\t Top of block: instance ", instanceCount);
+                        instanceData[instanceCount].transform = blockPositionTranslationMatrix * scale * moveFaceToTop();
+                        instanceData[instanceCount].normalTransform = Math3D::discardTranslation(instanceData[instanceCount].transform);
+                        instanceCount++;
+                    }
+
+                    if ( k == 0 || blocks[((k-1) * limit_x * limit_z) + (i * limit_x) + j] == 0 ) {
+    //                    AAPL_PRINT("\t Bottom of block: instance ", instanceCount);
+                        instanceData[instanceCount].transform = blockPositionTranslationMatrix * scale * moveFaceToBottom();
+                        instanceData[instanceCount].normalTransform = Math3D::discardTranslation(instanceData[instanceCount].transform);
+                        instanceCount++;
+                    }
                 }
             }
         }
-        
-        --recalculateBlocks;
     }
     
     // Apply rotations to the world and the camera
@@ -282,16 +319,17 @@ void Renderer::draw(MTL::RenderPassDescriptor *currentRPD, MTL::Drawable* curren
         renderEncoder->setFragmentBuffer(m_cameraDataBuffer, 0, VertexInputIndexCameraData);
         
         // Set modes for 3D rendering
-        renderEncoder->setCullMode( MTL::CullModeBack );
-        renderEncoder->setFrontFacingWinding( MTL::Winding::WindingCounterClockwise );
+        // TODO: Change the rotations of the cube faces to enable culling back
+//        renderEncoder->setCullMode( MTL::CullModeBack );
+//        renderEncoder->setFrontFacingWinding( MTL::Winding::WindingCounterClockwise );
         
         // Draw our cubes.
         renderEncoder->drawIndexedPrimitives(MTL::PrimitiveType::PrimitiveTypeTriangle, // Primitive type
-                                             36, // Index count
+                                             6, // Index count
                                              MTL::IndexType::IndexTypeUInt16, // Index type
                                              m_indexBuffer, // Index buffer
                                              0, // Index buffer offset
-                                             16 * 16 * 256); // Instance count
+                                             instanceCount); // Instance count
         
         renderEncoder->endEncoding();
         

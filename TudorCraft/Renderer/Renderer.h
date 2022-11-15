@@ -88,9 +88,27 @@ private:
     float m_yawAngle = 0.f;
     float m_pitchAngle = 0.f;
     
-    simd::float3 m_playerPos = (simd::float3) { 0.f, 0.f, 0.0f };
+    simd::float3 m_playerPos = (simd::float3) { 0.f, 0.f, -20.f };
     
     int recalculateBlocks = MAX_FRAMES_IN_FLIGHT;
+    
+    // Basic block array that will mimick an actual implementation we'll have down the line
+    // 1 means a block is there
+    // 0 means a block is not there
+    int blocks[36] =
+    {
+        1,1,1,1, // layer 1
+        1,1,1,1,
+        1,1,1,1,
+        
+        1,1,1,1, // layer 2
+        1,0,1,1,
+        1,1,1,1,
+        
+        1,1,1,1, // layer 3
+        1,0,1,1,
+        1,1,1,1
+    };
 };
 
 #endif /* Renderer_hpp */
