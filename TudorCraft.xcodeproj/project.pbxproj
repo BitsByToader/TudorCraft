@@ -19,7 +19,11 @@
 		8B1FF3C8291315DC00A9C095 /* Metal.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8B1FF3C7291315DC00A9C095 /* Metal.framework */; };
 		8B1FF3CA291319E400A9C095 /* MetalKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8B1FF3C9291319E400A9C095 /* MetalKit.framework */; settings = {ATTRIBUTES = (Required, ); }; };
 		8B2B7A902917C51800916671 /* Math3D.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8B2B7A8E2917C51800916671 /* Math3D.cpp */; };
+		8B5055322927EF29007402FD /* textures.png in Resources */ = {isa = PBXBuildFile; fileRef = 8B5055312927EF29007402FD /* textures.png */; };
 		8B53B3E6291697AC00713715 /* TextureAtlas.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8B53B3E4291697AC00713715 /* TextureAtlas.cpp */; };
+		8B672AE729281C4B00E111B1 /* Block.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8B672AE529281C4B00E111B1 /* Block.cpp */; };
+		8B672AEA29281C5E00E111B1 /* Chunk.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8B672AE829281C5E00E111B1 /* Chunk.cpp */; };
+		8B672AED29281C7200E111B1 /* World.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8B672AEB29281C7200E111B1 /* World.cpp */; };
 		8B9B8322291528F400FB1030 /* GameViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = 8B9B8321291528F400FB1030 /* GameViewController.mm */; };
 		8B9B832E2915951E00FB1030 /* Shaders.metal in Sources */ = {isa = PBXBuildFile; fileRef = 8B9B832D2915951E00FB1030 /* Shaders.metal */; };
 /* End PBXBuildFile section */
@@ -42,8 +46,15 @@
 		8B1FF3C9291319E400A9C095 /* MetalKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MetalKit.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS16.1.sdk/System/Library/Frameworks/MetalKit.framework; sourceTree = DEVELOPER_DIR; };
 		8B2B7A8E2917C51800916671 /* Math3D.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Math3D.cpp; sourceTree = "<group>"; };
 		8B2B7A8F2917C51800916671 /* Math3D.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = Math3D.hpp; sourceTree = "<group>"; };
+		8B5055312927EF29007402FD /* textures.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = textures.png; sourceTree = "<group>"; };
 		8B53B3E4291697AC00713715 /* TextureAtlas.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = TextureAtlas.cpp; sourceTree = "<group>"; };
 		8B53B3E5291697AC00713715 /* TextureAtlas.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = TextureAtlas.hpp; sourceTree = "<group>"; };
+		8B672AE529281C4B00E111B1 /* Block.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Block.cpp; sourceTree = "<group>"; };
+		8B672AE629281C4B00E111B1 /* Block.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = Block.hpp; sourceTree = "<group>"; };
+		8B672AE829281C5E00E111B1 /* Chunk.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Chunk.cpp; sourceTree = "<group>"; };
+		8B672AE929281C5E00E111B1 /* Chunk.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = Chunk.hpp; sourceTree = "<group>"; };
+		8B672AEB29281C7200E111B1 /* World.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = World.cpp; sourceTree = "<group>"; };
+		8B672AEC29281C7200E111B1 /* World.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = World.hpp; sourceTree = "<group>"; };
 		8B9B8321291528F400FB1030 /* GameViewController.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = GameViewController.mm; sourceTree = "<group>"; };
 		8B9B83232915290F00FB1030 /* GameViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = GameViewController.h; sourceTree = "<group>"; };
 		8B9B832B29158E7300FB1030 /* AAPLUtilities.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AAPLUtilities.h; sourceTree = "<group>"; };
@@ -91,6 +102,7 @@
 				8B366B6F291FE81900BC5427 /* UI */,
 				8B366B71291FE8CB00BC5427 /* Renderer */,
 				8B366B70291FE87300BC5427 /* Textures */,
+				8B672AE429281C0500E111B1 /* Engine */,
 				8B1FF3B129130D5700A9C095 /* Assets.xcassets */,
 				8B1FF3B329130D5700A9C095 /* TudorCraft.entitlements */,
 				8B1FF3B429130D5700A9C095 /* Preview Content */,
@@ -133,6 +145,7 @@
 			isa = PBXGroup;
 			children = (
 				8B04CBB029198B7500C54F7B /* test.png */,
+				8B5055312927EF29007402FD /* textures.png */,
 				8B53B3E4291697AC00713715 /* TextureAtlas.cpp */,
 				8B53B3E5291697AC00713715 /* TextureAtlas.hpp */,
 			);
@@ -158,6 +171,19 @@
 				8B2B7A8E2917C51800916671 /* Math3D.cpp */,
 			);
 			path = Utilities;
+			sourceTree = "<group>";
+		};
+		8B672AE429281C0500E111B1 /* Engine */ = {
+			isa = PBXGroup;
+			children = (
+				8B672AE529281C4B00E111B1 /* Block.cpp */,
+				8B672AE629281C4B00E111B1 /* Block.hpp */,
+				8B672AE829281C5E00E111B1 /* Chunk.cpp */,
+				8B672AE929281C5E00E111B1 /* Chunk.hpp */,
+				8B672AEB29281C7200E111B1 /* World.cpp */,
+				8B672AEC29281C7200E111B1 /* World.hpp */,
+			);
+			path = Engine;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -222,6 +248,7 @@
 				8B1FF3B629130D5700A9C095 /* Preview Assets.xcassets in Resources */,
 				8B1FF3B229130D5700A9C095 /* Assets.xcassets in Resources */,
 				8B04CBB129198B7500C54F7B /* test.png in Resources */,
+				8B5055322927EF29007402FD /* textures.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -232,10 +259,13 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				8B672AE729281C4B00E111B1 /* Block.cpp in Sources */,
+				8B672AEA29281C5E00E111B1 /* Chunk.cpp in Sources */,
 				8B9B832E2915951E00FB1030 /* Shaders.metal in Sources */,
 				8B1FF3C12913142500A9C095 /* Renderer.cpp in Sources */,
 				8B1FF3B029130D5500A9C095 /* ContentView.swift in Sources */,
 				8B53B3E6291697AC00713715 /* TextureAtlas.cpp in Sources */,
+				8B672AED29281C7200E111B1 /* World.cpp in Sources */,
 				8B2B7A902917C51800916671 /* Math3D.cpp in Sources */,
 				8B1FF3BD29130F4400A9C095 /* GameView.swift in Sources */,
 				8B9B8322291528F400FB1030 /* GameViewController.mm in Sources */,

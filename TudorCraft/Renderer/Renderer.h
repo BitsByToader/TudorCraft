@@ -17,12 +17,9 @@
 
 class Renderer {
 public:
+    // MARK: Public Methods
     Renderer();
     ~Renderer();
-    
-    void loadMetal();
-    
-    MTL::Texture *loadTextureUsingAtlas();
     
     void windowSizeWillChange(unsigned int width, unsigned int height);
     
@@ -41,8 +38,10 @@ public:
     void lookLeft();
 
 private:
-    dispatch_semaphore_t m_inFlightSemaphore;
+    // MARK: Private methods
+    void loadMetal();
     
+    // MARK: Private members
     /// The device we're using to render.
     MTL::Device* m_device;
     
@@ -55,8 +54,8 @@ private:
     /// Combined depth and stenctil object
     MTL::DepthStencilState* m_depthState;
     
-    /// Metal texture buffer
-    MTL::Texture *m_texture;
+    /// Metal textures buffer
+    MTL::Texture *m_texture[3];
     
     /// Vertex data buffer
     MTL::Buffer *m_vertices;
@@ -69,6 +68,9 @@ private:
     
     /// Camera data buffer
     MTL::Buffer* m_cameraDataBuffer;
+    
+    /// Buffer for the fragment shader to store the textures inside of
+    MTL::Buffer* m_fragmentShaderArgBuffer;
     
     /// Number of vertices
     NS::UInteger m_verticesCount;
@@ -95,20 +97,12 @@ private:
     // Basic block array that will mimick an actual implementation we'll have down the line
     // 1 means a block is there
     // 0 means a block is not there
-    int blocks[36] =
+    uint64_t blocks[16 * 16 * 64] =
     {
-        1,1,1,1, // layer 1
-        1,1,1,1,
-        1,1,1,1,
-        
-        1,1,1,1, // layer 2
-        1,0,1,1,
-        1,1,1,1,
-        
-        1,1,1,1, // layer 3
-        1,0,1,1,
-        1,1,1,1
+        1
     };
+    
+    int instanceCount = 0;
 };
 
 #endif /* Renderer_hpp */

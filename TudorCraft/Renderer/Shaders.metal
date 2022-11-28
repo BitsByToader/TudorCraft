@@ -14,18 +14,10 @@ using namespace metal;
 
 // Vertex shader outputs and fragment shader inputs
 struct RasterizerData {
-    // The [[position]] attribute qualifier of this member indicates this value is
-    // the clip space position of the vertex when this structure is returned from
-    // the vertex shader
     float4 position [[position]];
-    
     float3 normal;
-
-    // Since this member does not have a special attribute qualifier, the rasterizer
-    // will interpolate its value with values of other vertices making up the triangle
-    // and pass that interpolated value to the fragment shader for each fragment in
-    // that triangle.
     float2 textureCoordinate;
+    int textureId;
 };
 
 vertex RasterizerData
@@ -38,9 +30,7 @@ vertexShader(uint vertexID [[vertex_id]],
     RasterizerData out;
     
     simd::float4 pos;
-    pos.x = vertices[vertexID].position.x;
-    pos.y = vertices[vertexID].position.y;
-    pos.z = vertices[vertexID].position.z;
+    pos.xyz = vertices[vertexID].position.xyz;
     pos.w = 1.0f;
     
     pos = instanceData[instanceId].transform * pos;
@@ -52,23 +42,27 @@ vertexShader(uint vertexID [[vertex_id]],
     out.normal = normal;
     
     out.textureCoordinate = vertices[vertexID].textureCoordinate;
+    out.textureId = instanceData[instanceId].textureId;
 
     return out;
 }
 
+struct FragmentShaderTextures {
+    array<texture2d<half>, 3> arr [[ id(TextureIndexBaseColor) ]];
+};
+
 // Fragment function
 fragment float4
 samplingShader(RasterizerData in [[stage_in]],
-               texture2d<half> colorTexture [[ texture(TextureIndexBaseColor) ]],
-               constant CameraData *cameraData [[buffer(VertexInputIndexCameraData)]])
+               device FragmentShaderTextures &fragmentTextures [[buffer(FragmentInputIndexTextures)]],
+               constant CameraData *cameraData [[buffer(FragmentInputIndexCameraData)]])
 {
     constexpr sampler textureSampler (mag_filter::nearest, min_filter::linear);
 
     // Sample the texture to obtain a color
-    const half4 colorSample = colorTexture.sample(textureSampler, in.textureCoordinate);
+    const half4 colorSample = fragmentTextures.arr[in.textureId].sample(textureSampler, in.textureCoordinate);
     
     // TODO: Tranform the light coordinates along with the world coordinates to get proper shading
-    
     // assume light coming from (front-top-right)
     float3 l = normalize(cameraData->worldNormalTranform * float3( 1.0, 1.0, 1.0 ));
     float3 n = normalize( in.normal );

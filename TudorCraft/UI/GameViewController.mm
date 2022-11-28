@@ -55,14 +55,13 @@
     // Configure the view to use the default device
     m_view.delegate = self;
     
-    if ( @available(macOS 12, *) ) {
-        // TODO: Reverse these changes when pausing the game
-        
-        CGAssociateMouseAndMouseCursorPosition(gamePaused);
-        if ( !gamePaused ) {
-            CGDisplayHideCursor(kCGDirectMainDisplay);
-        }
+#if TARGET_OS_IPHONE
+#else
+    CGAssociateMouseAndMouseCursorPosition(gamePaused);
+    if ( !gamePaused ) {
+        CGDisplayHideCursor(kCGDirectMainDisplay);
     }
+#endif
 }
 
 - (void)drawInMTKView:(nonnull MTKView *)view {
@@ -121,14 +120,16 @@
         case 53:
 //            NSLog(@"Esc");
             gamePaused = !gamePaused;
-            CGAssociateMouseAndMouseCursorPosition(gamePaused);
             m_view.paused = gamePaused;
+#if TARGET_OS_IPHONE
+#else
+            CGAssociateMouseAndMouseCursorPosition(gamePaused);
             if ( !gamePaused ) {
                 CGDisplayHideCursor(kCGDirectMainDisplay);
             } else {
                 CGDisplayShowCursor(kCGDirectMainDisplay);
             }
-            
+#endif
             break;
             
         case 123:
