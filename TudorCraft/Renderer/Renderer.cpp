@@ -70,7 +70,7 @@ Renderer::~Renderer() {
 
 // MARK: - Transformation matrixes for mesh creation
 const inline simd::float4x4 moveFaceToBack() {
-    return Math3D::makeTranslate((simd::float3) { 0.f, 0.f, -1.f } );
+    return Math3D::makeYRotate4x4(M_PI);
 }
 
 const inline simd::float4x4 moveFaceToRight() {
@@ -93,31 +93,8 @@ const inline simd::float4x4 moveFaceToBottom() {
 void Renderer::loadMetal() {
     NS::AutoreleasePool* pPool = NS::AutoreleasePool::alloc()->init();
     
-    // MARK: Create texture
-    /*
-     Diamond ore block texture coords:
-        xBase = 8 * 16 - 3
-        yBase = 21*16 - 8
-     
-     Grass side texture coords:
-        xBase = 0
-        yBase = 25*16 - 9
-     
-     Grass bottom texture coords:
-        xBase = 10*16-4
-     	yBase = 21*16-8
-     
-     Grass top texture coords:
-        xBase = 17*16-6
-        yBase = 0
-     */
-    
-    
-//    m_texture = m_atlas->getTextureWithCoordinates(17*16-6, 0);
-    
-    float s = 0.5f;
-    
     // MARK: Create vertices
+    float s = 0.5f;
     Vertex quadVertices[] =
     {
         //                                         Texture
@@ -142,10 +119,10 @@ void Renderer::loadMetal() {
     // Create a buffer for each frame we can work independently
     for ( int i = 0; i < MAX_FRAMES_IN_FLIGHT; i++ ) {
         // number of blocks times the number of faces we can possibly have
-        m_instanceDataBuffers[i] = m_device->newBuffer(16 * 16 * 64 * 6 * sizeof(InstanceData), MTL::ResourceStorageModeShared);
+        m_instanceDataBuffers[i] = m_device->newBuffer(16 * 16 * 16 * 6 * sizeof(InstanceData), MTL::ResourceStorageModeShared);
     }
     
-    for ( int i = 0; i < 16*16*64; i++ ) {
+    for ( int i = 0; i < 16*16*16; i++ ) {
         blocks[i] = 1;
     }
     
@@ -182,16 +159,12 @@ void Renderer::loadMetal() {
     argEncoder->setArgumentBuffer(m_fragmentShaderArgBuffer, 0);
     
     m_texture[0] = m_atlas->getTextureWithCoordinates(0, 25*16-9); // side
-    argEncoder->setTexture(m_texture[0],
-                           TextureIndexBaseColor + 0);
-    
     m_texture[1] = m_atlas->getTextureWithCoordinates(17*16-6, 0); // top
-    argEncoder->setTexture(m_texture[1],
-                           TextureIndexBaseColor + 1);
-    
     m_texture[2] = m_atlas->getTextureWithCoordinates(10*16-4, 21*16-8); // bottom
-    argEncoder->setTexture(m_texture[2],
-                           TextureIndexBaseColor + 2);
+    
+    for ( int i = 0; i < 3; i++ ) {
+        argEncoder->setTexture(m_texture[i], TextureIndexBaseColor + i);
+    }
     
     //MARK: Create depth/stenctil object
     MTL::DepthStencilDescriptor* depthDescriptor = MTL::DepthStencilDescriptor::alloc()->init();
@@ -214,6 +187,88 @@ void Renderer::loadMetal() {
     pPool->release();
 }
 
+//MARK: - Calculate mesh faces
+int Renderer::calculateMeshes(InstanceData *instanceData) {
+    using namespace simd;
+    const float scl = 5.f;
+    
+    int instanceCount = 0;
+    
+    int limit_x = 16;
+    int limit_y = 16;
+    int limit_z = 16;
+
+    const float4x4 scale = Math3D::makeScale( (float3){ scl, scl, scl } );
+
+    for ( int k = 0; k < limit_y; k++ ) {
+        for ( int i = 0; i < limit_z; i++ ) {
+            for ( int j = 0; j < limit_x; j++ ) {
+                if ( blocks[k * limit_x * limit_z + i*limit_x + j] != 0 ) {
+                    // Loop through every single block
+                    // Create the main block position
+                    float4x4 blockPositionTranslationMatrix = Math3D::makeTranslate((float3) { 5.f * j, 5.f * k, -(5.f * i) } );
+
+                    if ( i == 0 || blocks[(k * limit_x * limit_z) + ((i-1) * limit_x) + j] == 0 ) {
+                        // Front of block
+                        instanceData[instanceCount].transform = blockPositionTranslationMatrix * scale;
+                        instanceData[instanceCount].normalTransform = Math3D::discardTranslation(instanceData[instanceCount].transform);
+                        instanceData[instanceCount].textureId = 0;
+                        
+                        instanceCount++;
+                    }
+
+                    if ( j == 0 || blocks[(k * limit_x * limit_z) + (i * limit_x) + (j - 1)] == 0 ) {
+                        // Left of block
+                        instanceData[instanceCount].transform = blockPositionTranslationMatrix * scale * moveFaceToLeft();
+                        instanceData[instanceCount].normalTransform = Math3D::discardTranslation(instanceData[instanceCount].transform);
+                        instanceData[instanceCount].textureId = 0;
+                        
+                        instanceCount++;
+                    }
+
+                    if ( i == limit_z - 1 || blocks[(k * limit_x * limit_z) + ((i+1) * limit_x) + j] == 0 ){
+                        // Back of block
+                        instanceData[instanceCount].transform = blockPositionTranslationMatrix * scale * moveFaceToBack();
+                        instanceData[instanceCount].normalTransform = Math3D::discardTranslation(instanceData[instanceCount].transform);
+                        instanceData[instanceCount].textureId = 0;
+                        
+                        instanceCount++;
+                    }
+
+                    if ( j == limit_x-1 || blocks[(k * limit_x * limit_z) + (i * limit_x) + (j + 1)] == 0 ){
+                        // Right of block
+                        instanceData[instanceCount].transform = blockPositionTranslationMatrix * scale * moveFaceToRight();
+                        instanceData[instanceCount].normalTransform = Math3D::discardTranslation(instanceData[instanceCount].transform);
+                        instanceData[instanceCount].textureId = 0;
+                        
+                        instanceCount++;
+                    }
+                    
+                    if ( k == limit_y - 1 || blocks[((k+1) * limit_x * limit_z) + (i * limit_x) + j] == 0 ){
+                        // Top of block
+                        instanceData[instanceCount].transform = blockPositionTranslationMatrix * scale * moveFaceToTop();
+                        instanceData[instanceCount].normalTransform = Math3D::discardTranslation(instanceData[instanceCount].transform);
+                        instanceData[instanceCount].textureId = 1;
+                        
+                        instanceCount++;
+                    }
+
+                    if ( k == 0 || blocks[((k-1) * limit_x * limit_z) + (i * limit_x) + j] == 0 ) {
+                        // Bottom of block
+                        instanceData[instanceCount].transform = blockPositionTranslationMatrix * scale * moveFaceToBottom();
+                        instanceData[instanceCount].normalTransform = Math3D::discardTranslation(instanceData[instanceCount].transform);
+                        instanceData[instanceCount].textureId = 2;
+                        
+                        instanceCount++;
+                    }
+                }
+            }
+        }
+    }
+    
+    return instanceCount;
+};
+
 // MARK: - Window size will change method
 void Renderer::windowSizeWillChange(unsigned int width, unsigned int height) {
     NS::AutoreleasePool* pPool = NS::AutoreleasePool::alloc()->init();
@@ -231,8 +286,6 @@ void Renderer::draw(MTL::RenderPassDescriptor *currentRPD, MTL::Drawable* curren
     NS::AutoreleasePool* pPool = NS::AutoreleasePool::alloc()->init();
     
     using namespace simd;
-
-    const float scl = 5.f;
     
     m_frame = (m_frame + 1) % MAX_FRAMES_IN_FLIGHT;
     MTL::Buffer* instanceDataBuffer = m_instanceDataBuffers[m_frame];
@@ -251,81 +304,7 @@ void Renderer::draw(MTL::RenderPassDescriptor *currentRPD, MTL::Drawable* curren
     if ( recalculateBlocks ) {
         InstanceData *instanceData = reinterpret_cast<InstanceData *>(instanceDataBuffer->contents());
         
-        instanceCount = 0;
-        
-        int limit_x = 16;
-        int limit_y = 64;
-        int limit_z = 16;
-
-        const float4x4 scale = Math3D::makeScale( (float3){ scl, scl, scl } );
-
-        for ( int k = 0; k < limit_y; k++ ) {
-            for ( int i = 0; i < limit_z; i++ ) {
-                for ( int j = 0; j < limit_x; j++ ) {
-                    if ( blocks[k * limit_x * limit_z + i*limit_x + j] != 0 ) {
-    //                    AAPL_PRINT("Block: ", i, " ", j, " ", k);
-
-                        // Loop through every single block
-                        // Create the main block position
-                        float4x4 blockPositionTranslationMatrix = Math3D::makeTranslate((float3) { 5.f * j, 5.f * k, -(5.f * i) } );
-
-                        if ( i == 0 || blocks[(k * limit_x * limit_z) + ((i-1) * limit_x) + j] == 0 ) {
-                            // Front of block
-                            instanceData[instanceCount].transform = blockPositionTranslationMatrix * scale;
-                            instanceData[instanceCount].normalTransform = Math3D::discardTranslation(instanceData[instanceCount].transform);
-                            instanceData[instanceCount].textureId = 0;
-                            
-                            instanceCount++;
-                        }
-
-                        if ( j == 0 || blocks[(k * limit_x * limit_z) + (i * limit_x) + (j - 1)] == 0 ) {
-                            // Left of block
-                            instanceData[instanceCount].transform = blockPositionTranslationMatrix * scale * moveFaceToLeft();
-                            instanceData[instanceCount].normalTransform = Math3D::discardTranslation(instanceData[instanceCount].transform);
-                            instanceData[instanceCount].textureId = 0;
-                            
-                            instanceCount++;
-                        }
-
-                        if ( i == limit_z - 1 || blocks[(k * limit_x * limit_z) + ((i+1) * limit_x) + j] == 0 ){
-                            // Back of block
-                            instanceData[instanceCount].transform = blockPositionTranslationMatrix * scale * moveFaceToBack();
-                            instanceData[instanceCount].normalTransform = Math3D::discardTranslation(instanceData[instanceCount].transform);
-                            instanceData[instanceCount].textureId = 0;
-                            
-                            instanceCount++;
-                        }
-
-                        if ( j == limit_x-1 || blocks[(k * limit_x * limit_z) + (i * limit_x) + (j + 1)] == 0 ){
-                            // Right of block
-                            instanceData[instanceCount].transform = blockPositionTranslationMatrix * scale * moveFaceToRight();
-                            instanceData[instanceCount].normalTransform = Math3D::discardTranslation(instanceData[instanceCount].transform);
-                            instanceData[instanceCount].textureId = 0;
-                            
-                            instanceCount++;
-                        }
-                        
-                        if ( k == limit_y - 1 || blocks[((k+1) * limit_x * limit_z) + (i * limit_x) + j] == 0 ){
-                            // Top of block
-                            instanceData[instanceCount].transform = blockPositionTranslationMatrix * scale * moveFaceToTop();
-                            instanceData[instanceCount].normalTransform = Math3D::discardTranslation(instanceData[instanceCount].transform);
-                            instanceData[instanceCount].textureId = 1;
-                            
-                            instanceCount++;
-                        }
-
-                        if ( k == 0 || blocks[((k-1) * limit_x * limit_z) + (i * limit_x) + j] == 0 ) {
-                            // Bottom of block
-                            instanceData[instanceCount].transform = blockPositionTranslationMatrix * scale * moveFaceToBottom();
-                            instanceData[instanceCount].normalTransform = Math3D::discardTranslation(instanceData[instanceCount].transform);
-                            instanceData[instanceCount].textureId = 2;
-                            
-                            instanceCount++;
-                        }
-                    }
-                }
-            }
-        }
+        instanceCount = calculateMeshes(instanceData);
         
         --recalculateBlocks;
     }
@@ -362,9 +341,8 @@ void Renderer::draw(MTL::RenderPassDescriptor *currentRPD, MTL::Drawable* curren
         renderEncoder->setFragmentBuffer(m_cameraDataBuffer, 0, FragmentInputIndexCameraData);
         
         // Set modes for 3D rendering
-        // TODO: Change the rotations of the cube faces to enable culling back
-//        renderEncoder->setCullMode( MTL::CullModeBack );
-//        renderEncoder->setFrontFacingWinding( MTL::Winding::WindingCounterClockwise );
+        renderEncoder->setCullMode( MTL::CullModeBack );
+        renderEncoder->setFrontFacingWinding( MTL::Winding::WindingCounterClockwise );
         
         // Draw our cubes.
         renderEncoder->drawIndexedPrimitives(MTL::PrimitiveType::PrimitiveTypeTriangle, // Primitive type
@@ -387,21 +365,21 @@ void Renderer::draw(MTL::RenderPassDescriptor *currentRPD, MTL::Drawable* curren
 void Renderer::forward() {
     m_playerPos.x += sinf(-m_yawAngle);
     
-    m_playerPos.z += cosf(-m_yawAngle) * cosf(-m_pitchAngle);
-    m_playerPos.y += cosf(-m_yawAngle) * sinf(-m_pitchAngle);
+    m_playerPos.z += cosf(m_yawAngle) * cosf(m_pitchAngle);
+    m_playerPos.y += cosf(m_yawAngle) * sinf(-m_pitchAngle);
 };
 void Renderer::backward() {
     m_playerPos.x -= sinf(-m_yawAngle);
     
-    m_playerPos.z -= cosf(-m_yawAngle) * cosf(-m_pitchAngle);
-    m_playerPos.y -= cosf(-m_yawAngle) * sinf(-m_pitchAngle);
+    m_playerPos.z -= cosf(m_yawAngle) * cosf(m_pitchAngle);
+    m_playerPos.y -= cosf(m_yawAngle) * sinf(-m_pitchAngle);
 };
 void Renderer::left() {
-    m_playerPos.x -= -cosf(-m_yawAngle);
+    m_playerPos.x -= -cosf(m_yawAngle);
     m_playerPos.z -= sinf(-m_yawAngle);
 };
 void Renderer::right() {
-    m_playerPos.x += -cosf(-m_yawAngle);
+    m_playerPos.x += -cosf(m_yawAngle);
     m_playerPos.z += sinf(-m_yawAngle);
 };
 

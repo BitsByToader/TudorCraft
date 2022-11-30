@@ -10,7 +10,7 @@
 
 #include <Metal/Metal.hpp>
 #include <simd/simd.h>
-
+#include "ShaderTypes.h"
 #include "TextureAtlas.hpp"
 
 #define MAX_FRAMES_IN_FLIGHT 3
@@ -40,6 +40,7 @@ public:
 private:
     // MARK: Private methods
     void loadMetal();
+    int calculateMeshes(InstanceData *instanceData);
     
     // MARK: Private members
     /// The device we're using to render.
@@ -97,7 +98,7 @@ private:
     // Basic block array that will mimick an actual implementation we'll have down the line
     // 1 means a block is there
     // 0 means a block is not there
-    uint64_t blocks[16 * 16 * 64] =
+    uint64_t blocks[16 * 16 * 16] =
     {
         1
     };
