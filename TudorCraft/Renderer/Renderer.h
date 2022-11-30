@@ -40,6 +40,10 @@ public:
 private:
     // MARK: Private methods
     void loadMetal();
+    void createHeap();
+    void moveResourcesToHeap();
+    static MTL::TextureDescriptor *newDescriptorFromTexture(MTL::Texture *texture, MTL::StorageMode storageMode);
+    
     int calculateMeshes(InstanceData *instanceData);
     
     // MARK: Private members
@@ -55,8 +59,12 @@ private:
     /// Combined depth and stenctil object
     MTL::DepthStencilState* m_depthState;
     
+    /// The heap where all the GPU resources will reside in
+    MTL::Heap *m_heap;
+    
     /// Metal textures buffer
     MTL::Texture *m_texture[3];
+    int m_textureCount = 3;
     
     /// Vertex data buffer
     MTL::Buffer *m_vertices;

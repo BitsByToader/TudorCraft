@@ -56,12 +56,12 @@ Renderer::~Renderer() {
     m_device->release();
     m_vertices->release();
     m_indexBuffer->release();
+    m_heap->release();
+    m_depthState->release();
     
     for ( int i = 0; i < MAX_FRAMES_IN_FLIGHT; i++ ) {
         m_instanceDataBuffers[i]->release();
     }
-    
-    m_depthState->release();
     
     for ( int i = 0; i < 3; i++ ) {
         m_texture[i]->release();
@@ -92,6 +92,11 @@ const inline simd::float4x4 moveFaceToBottom() {
 //MARK: - Load metal
 void Renderer::loadMetal() {
     NS::AutoreleasePool* pPool = NS::AutoreleasePool::alloc()->init();
+    
+    //MARK: Create textures
+    m_texture[0] = m_atlas->getTextureWithCoordinates(0, 25*16-9); // side
+    m_texture[1] = m_atlas->getTextureWithCoordinates(17*16-6, 0); // top
+    m_texture[2] = m_atlas->getTextureWithCoordinates(10*16-4, 21*16-8); // bottom
     
     // MARK: Create vertices
     float s = 0.5f;
@@ -126,6 +131,9 @@ void Renderer::loadMetal() {
         blocks[i] = 1;
     }
     
+    createHeap();
+    moveResourcesToHeap();
+    
     //MARK: Create render pipeline
     // Load all the shader files with the .metal extensions in the project
     MTL::Library *defaultLibrary = m_device->newDefaultLibrary();
@@ -158,11 +166,7 @@ void Renderer::loadMetal() {
     
     argEncoder->setArgumentBuffer(m_fragmentShaderArgBuffer, 0);
     
-    m_texture[0] = m_atlas->getTextureWithCoordinates(0, 25*16-9); // side
-    m_texture[1] = m_atlas->getTextureWithCoordinates(17*16-6, 0); // top
-    m_texture[2] = m_atlas->getTextureWithCoordinates(10*16-4, 21*16-8); // bottom
-    
-    for ( int i = 0; i < 3; i++ ) {
+    for ( int i = 0; i < m_textureCount; i++ ) {
         argEncoder->setTexture(m_texture[i], TextureIndexBaseColor + i);
     }
     
@@ -186,6 +190,103 @@ void Renderer::loadMetal() {
     
     pPool->release();
 }
+
+//MARK: - Create a new texture descriptor from an existing texture
+MTL::TextureDescriptor *Renderer::newDescriptorFromTexture(MTL::Texture *texture,
+                                                           MTL::StorageMode storageMode) {
+    MTL::TextureDescriptor *descriptor = MTL::TextureDescriptor::alloc()->init();
+    
+    descriptor->setTextureType(texture->textureType());
+    descriptor->setPixelFormat(texture->pixelFormat());
+    descriptor->setWidth(texture->width());
+    descriptor->setHeight(texture->height());
+    descriptor->setDepth(texture->depth());
+    descriptor->setMipmapLevelCount(texture->mipmapLevelCount());
+    descriptor->setArrayLength(texture->arrayLength());
+    descriptor->setSampleCount(texture->sampleCount());
+    descriptor->setStorageMode(storageMode);
+    
+    return descriptor;
+};
+
+//MARK: - Create Heap
+void Renderer::createHeap() {
+    NS::AutoreleasePool* pPool = NS::AutoreleasePool::alloc()->init();
+    
+    MTL::HeapDescriptor *heapDescriptor = MTL::HeapDescriptor::alloc()->init();
+    heapDescriptor->setStorageMode(MTL::StorageModePrivate);
+    heapDescriptor->setSize(0);
+    
+    //Build a descriptor for each texture and calculate the size required to store all the textures in the heap.
+    for ( int i = 0; i < m_textureCount; i++ ) {
+        MTL::TextureDescriptor *descriptor = Renderer::newDescriptorFromTexture(m_texture[i],
+                                                                                heapDescriptor->storageMode());
+        
+        MTL::SizeAndAlign sizeAndAlign = m_device->heapTextureSizeAndAlign(descriptor);
+        sizeAndAlign.size += (sizeAndAlign.size & (sizeAndAlign.align - 1)) + sizeAndAlign.align;
+        heapDescriptor->setSize(heapDescriptor->size() + sizeAndAlign.size);
+        
+        descriptor->release();
+    }
+    
+    m_heap = m_device->newHeap(heapDescriptor);
+    
+    heapDescriptor->release();
+    pPool->release();
+};
+
+//MARK: - Move resources to heap
+void Renderer::moveResourcesToHeap() {
+    NS::AutoreleasePool *pPool = NS::AutoreleasePool::alloc()->init();
+    
+    // Create a command buffer and blit encoder to copy data from existing resources
+    // to resources created from the heap.
+    MTL::CommandBuffer *commandBuffer = m_commandQueue->commandBuffer();
+    commandBuffer->setLabel(AAPLSTR("Heap copy command buffer"));
+    
+    MTL::BlitCommandEncoder *blitEncoder = commandBuffer->blitCommandEncoder();
+    blitEncoder->setLabel(AAPLSTR("Heap transfer blit encoder"));
+    
+    // Create new textures from the heap and copy the contents.
+    for ( int i = 0; i < m_textureCount; i++ ) {
+        MTL::TextureDescriptor *descriptor = Renderer::newDescriptorFromTexture(m_texture[i],
+                                                                                m_heap->storageMode());
+        
+        MTL::Texture *heapTexture = m_heap->newTexture(descriptor);
+        heapTexture->setLabel(m_texture[i]->label());
+        
+        MTL::Region region = MTL::Region::Make2D(0, 0, m_texture[i]->width(), m_texture[i]->height());
+        for ( int level = 0; level < m_texture[i]->mipmapLevelCount(); level++ ) {
+            for ( int slice = 0; slice < m_texture[i]->arrayLength(); slice++ ) {
+                blitEncoder->copyFromTexture(m_texture[i], // sourceTexture
+                                             slice, // sourceSlice
+                                             level, // sourceLevel
+                                             region.origin, // sourceOrigin
+                                             region.size, // sourceSize
+                                             heapTexture, // toTexture
+                                             slice, // destinationSlice
+                                             level, // destinationLevel
+                                             region.origin); // destinationTexture
+            }
+            
+            region.size.width /= 2;
+            region.size.height /= 2;
+            if(region.size.width == 0) region.size.width = 1;
+            if(region.size.height == 0) region.size.height = 1;
+        }
+        
+        descriptor->release();
+        m_texture[i]->release();
+        m_texture[i] = heapTexture;
+    }
+    
+    blitEncoder->endEncoding();
+    commandBuffer->commit();
+    
+//    blitEncoder->release();
+//    commandBuffer->release();
+    pPool->release();
+};
 
 //MARK: - Calculate mesh faces
 int Renderer::calculateMeshes(InstanceData *instanceData) {
@@ -323,13 +424,10 @@ void Renderer::draw(MTL::RenderPassDescriptor *currentRPD, MTL::Drawable* curren
         MTL::Viewport viewPort = {0.0, 0.0, (double) m_windowSize.x, (double) m_windowSize.y, 0.0, 1.0};
         renderEncoder->setViewport(viewPort);
         
-        // Indicate to Metal that the textures will be mapped to the GPUs address space
-        for ( int i = 0; i < 3; i++ ) {
-            renderEncoder->useResource(m_texture[i], MTL::ResourceUsageSample);
-        }
+        // Indicate to Metal that the textures will be loaded from the GPU heap
+        renderEncoder->useHeap(m_heap);
         
         renderEncoder->setRenderPipelineState(m_pipelineState);
-        
         renderEncoder->setDepthStencilState(m_depthState);
         
         // Pass in the parameter data.
