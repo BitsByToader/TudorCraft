@@ -8,24 +8,31 @@
 #import "GameViewController.h"
 
 #include "Renderer.h"
+#include "TCPClient.hpp"
 
 @implementation GameViewController
     MTKView* m_view;
     
     Renderer* m_renderer;
+    TCPClient* m_client;
 
     bool gamePaused = false;
 
 - (id) init {
-    NSLog(@"Called GameViewController init");
+//    NSLog(@"Called GameViewController init");
     
     self = [super init];
     
     return self;
 }
 
+- (void) viewDidDisappear {
+    delete m_renderer;
+    delete m_client;
+}
+
 - (void) loadView {
-    NSLog(@"Called loadView");
+//    NSLog(@"Called loadView");
     
     m_view = [[MTKView alloc] init];
     
@@ -33,7 +40,7 @@
 }
 
 - (void)viewDidLoad {
-    NSLog(@"Called viewDidLoad");
+//    NSLog(@"Called viewDidLoad");
     
     [super viewDidLoad];
     
@@ -62,6 +69,8 @@
         CGDisplayHideCursor(kCGDirectMainDisplay);
     }
 #endif
+    
+    m_client = new TCPClient("192.168.1.11", 25565);
 }
 
 - (void)drawInMTKView:(nonnull MTKView *)view {

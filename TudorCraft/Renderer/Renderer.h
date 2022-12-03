@@ -42,7 +42,8 @@ private:
     void loadMetal();
     void createHeap();
     void moveResourcesToHeap();
-    static MTL::TextureDescriptor *newDescriptorFromTexture(MTL::Texture *texture, MTL::StorageMode storageMode);
+    static MTL::TextureDescriptor *newDescriptorFromTexture(MTL::Texture *texture,
+                                                            MTL::StorageMode storageMode);
     
     int calculateMeshes(InstanceData *instanceData);
     

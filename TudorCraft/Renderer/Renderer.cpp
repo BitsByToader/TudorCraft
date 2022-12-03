@@ -5,12 +5,6 @@
 //  Created by Tudor Ifrim on 02.11.2022.
 //
 
-// MARK: TODO
-/*
- - Clean up the code.
- - Use the bragging rights to their full potential :-)
- */
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/sysctl.h>

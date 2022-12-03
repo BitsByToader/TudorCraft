@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		8B0479F9293A7D9A00284659 /* TCPStream.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8B0479F7293A7D9A00284659 /* TCPStream.cpp */; };
+		8B0479FC293A821000284659 /* Packet.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8B0479FA293A821000284659 /* Packet.cpp */; };
 		8B04CBB129198B7500C54F7B /* test.png in Resources */ = {isa = PBXBuildFile; fileRef = 8B04CBB029198B7500C54F7B /* test.png */; };
 		8B1FF3AE29130D5500A9C095 /* TudorCraftApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B1FF3AD29130D5500A9C095 /* TudorCraftApp.swift */; };
 		8B1FF3B029130D5500A9C095 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B1FF3AF29130D5500A9C095 /* ContentView.swift */; };
@@ -18,7 +20,9 @@
 		8B1FF3C6291315D800A9C095 /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8B1FF3C5291315D800A9C095 /* QuartzCore.framework */; };
 		8B1FF3C8291315DC00A9C095 /* Metal.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8B1FF3C7291315DC00A9C095 /* Metal.framework */; };
 		8B1FF3CA291319E400A9C095 /* MetalKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8B1FF3C9291319E400A9C095 /* MetalKit.framework */; settings = {ATTRIBUTES = (Required, ); }; };
+		8B21827C293BE40C00F7AEFE /* Uuid.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8B21827A293BE40C00F7AEFE /* Uuid.cpp */; };
 		8B2B7A902917C51800916671 /* Math3D.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8B2B7A8E2917C51800916671 /* Math3D.cpp */; };
+		8B3ED5D62937D4F00071F51E /* Column.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8B3ED5D42937D4F00071F51E /* Column.cpp */; };
 		8B5055322927EF29007402FD /* textures.png in Resources */ = {isa = PBXBuildFile; fileRef = 8B5055312927EF29007402FD /* textures.png */; };
 		8B53B3E6291697AC00713715 /* TextureAtlas.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8B53B3E4291697AC00713715 /* TextureAtlas.cpp */; };
 		8B672AE729281C4B00E111B1 /* Block.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8B672AE529281C4B00E111B1 /* Block.cpp */; };
@@ -26,9 +30,15 @@
 		8B672AED29281C7200E111B1 /* World.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8B672AEB29281C7200E111B1 /* World.cpp */; };
 		8B9B8322291528F400FB1030 /* GameViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = 8B9B8321291528F400FB1030 /* GameViewController.mm */; };
 		8B9B832E2915951E00FB1030 /* Shaders.metal in Sources */ = {isa = PBXBuildFile; fileRef = 8B9B832D2915951E00FB1030 /* Shaders.metal */; };
+		8BC709C52938FD010031B28A /* TCPClient.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8BC709C32938FD010031B28A /* TCPClient.cpp */; };
+		8BC709C829391CAB0031B28A /* VarInt.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8BC709C629391CAB0031B28A /* VarInt.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		8B0479F7293A7D9A00284659 /* TCPStream.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = TCPStream.cpp; sourceTree = "<group>"; };
+		8B0479F8293A7D9A00284659 /* TCPStream.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = TCPStream.hpp; sourceTree = "<group>"; };
+		8B0479FA293A821000284659 /* Packet.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Packet.cpp; sourceTree = "<group>"; };
+		8B0479FB293A821000284659 /* Packet.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = Packet.hpp; sourceTree = "<group>"; };
 		8B04CBB029198B7500C54F7B /* test.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = test.png; sourceTree = "<group>"; };
 		8B1FF3AA29130D5500A9C095 /* TudorCraft.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TudorCraft.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		8B1FF3AD29130D5500A9C095 /* TudorCraftApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TudorCraftApp.swift; sourceTree = "<group>"; };
@@ -44,8 +54,12 @@
 		8B1FF3C5291315D800A9C095 /* QuartzCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuartzCore.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS16.1.sdk/System/Library/Frameworks/QuartzCore.framework; sourceTree = DEVELOPER_DIR; };
 		8B1FF3C7291315DC00A9C095 /* Metal.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Metal.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS16.1.sdk/System/Library/Frameworks/Metal.framework; sourceTree = DEVELOPER_DIR; };
 		8B1FF3C9291319E400A9C095 /* MetalKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MetalKit.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS16.1.sdk/System/Library/Frameworks/MetalKit.framework; sourceTree = DEVELOPER_DIR; };
+		8B21827A293BE40C00F7AEFE /* Uuid.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Uuid.cpp; sourceTree = "<group>"; };
+		8B21827B293BE40C00F7AEFE /* Uuid.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = Uuid.hpp; sourceTree = "<group>"; };
 		8B2B7A8E2917C51800916671 /* Math3D.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Math3D.cpp; sourceTree = "<group>"; };
 		8B2B7A8F2917C51800916671 /* Math3D.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = Math3D.hpp; sourceTree = "<group>"; };
+		8B3ED5D42937D4F00071F51E /* Column.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Column.cpp; sourceTree = "<group>"; };
+		8B3ED5D52937D4F00071F51E /* Column.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = Column.hpp; sourceTree = "<group>"; };
 		8B5055312927EF29007402FD /* textures.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = textures.png; sourceTree = "<group>"; };
 		8B53B3E4291697AC00713715 /* TextureAtlas.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = TextureAtlas.cpp; sourceTree = "<group>"; };
 		8B53B3E5291697AC00713715 /* TextureAtlas.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = TextureAtlas.hpp; sourceTree = "<group>"; };
@@ -60,6 +74,10 @@
 		8B9B832B29158E7300FB1030 /* AAPLUtilities.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AAPLUtilities.h; sourceTree = "<group>"; };
 		8B9B832C291594DC00FB1030 /* ShaderTypes.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ShaderTypes.h; sourceTree = "<group>"; };
 		8B9B832D2915951E00FB1030 /* Shaders.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = Shaders.metal; sourceTree = "<group>"; };
+		8BC709C32938FD010031B28A /* TCPClient.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = TCPClient.cpp; sourceTree = "<group>"; };
+		8BC709C42938FD010031B28A /* TCPClient.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = TCPClient.hpp; sourceTree = "<group>"; };
+		8BC709C629391CAB0031B28A /* VarInt.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = VarInt.cpp; sourceTree = "<group>"; };
+		8BC709C729391CAB0031B28A /* VarInt.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = VarInt.hpp; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -77,6 +95,19 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		8B0479F6293A7D6800284659 /* Minecraft Protocol */ = {
+			isa = PBXGroup;
+			children = (
+				8B0479FA293A821000284659 /* Packet.cpp */,
+				8B0479FB293A821000284659 /* Packet.hpp */,
+				8BC709C629391CAB0031B28A /* VarInt.cpp */,
+				8BC709C729391CAB0031B28A /* VarInt.hpp */,
+				8B21827A293BE40C00F7AEFE /* Uuid.cpp */,
+				8B21827B293BE40C00F7AEFE /* Uuid.hpp */,
+			);
+			path = "Minecraft Protocol";
+			sourceTree = "<group>";
+		};
 		8B1FF3A129130D5500A9C095 = {
 			isa = PBXGroup;
 			children = (
@@ -103,6 +134,7 @@
 				8B366B71291FE8CB00BC5427 /* Renderer */,
 				8B366B70291FE87300BC5427 /* Textures */,
 				8B672AE429281C0500E111B1 /* Engine */,
+				8BC709C22938FCAC0031B28A /* Networking */,
 				8B1FF3B129130D5700A9C095 /* Assets.xcassets */,
 				8B1FF3B329130D5700A9C095 /* TudorCraft.entitlements */,
 				8B1FF3B429130D5700A9C095 /* Preview Content */,
@@ -173,17 +205,39 @@
 			path = Utilities;
 			sourceTree = "<group>";
 		};
-		8B672AE429281C0500E111B1 /* Engine */ = {
+		8B3ED5D82937D5000071F51E /* World */ = {
 			isa = PBXGroup;
 			children = (
 				8B672AE529281C4B00E111B1 /* Block.cpp */,
 				8B672AE629281C4B00E111B1 /* Block.hpp */,
 				8B672AE829281C5E00E111B1 /* Chunk.cpp */,
 				8B672AE929281C5E00E111B1 /* Chunk.hpp */,
+				8B3ED5D42937D4F00071F51E /* Column.cpp */,
+				8B3ED5D52937D4F00071F51E /* Column.hpp */,
 				8B672AEB29281C7200E111B1 /* World.cpp */,
 				8B672AEC29281C7200E111B1 /* World.hpp */,
 			);
+			path = World;
+			sourceTree = "<group>";
+		};
+		8B672AE429281C0500E111B1 /* Engine */ = {
+			isa = PBXGroup;
+			children = (
+				8B3ED5D82937D5000071F51E /* World */,
+			);
 			path = Engine;
+			sourceTree = "<group>";
+		};
+		8BC709C22938FCAC0031B28A /* Networking */ = {
+			isa = PBXGroup;
+			children = (
+				8B0479F6293A7D6800284659 /* Minecraft Protocol */,
+				8BC709C32938FD010031B28A /* TCPClient.cpp */,
+				8BC709C42938FD010031B28A /* TCPClient.hpp */,
+				8B0479F7293A7D9A00284659 /* TCPStream.cpp */,
+				8B0479F8293A7D9A00284659 /* TCPStream.hpp */,
+			);
+			path = Networking;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -260,14 +314,20 @@
 			buildActionMask = 2147483647;
 			files = (
 				8B672AE729281C4B00E111B1 /* Block.cpp in Sources */,
+				8B21827C293BE40C00F7AEFE /* Uuid.cpp in Sources */,
 				8B672AEA29281C5E00E111B1 /* Chunk.cpp in Sources */,
 				8B9B832E2915951E00FB1030 /* Shaders.metal in Sources */,
+				8B0479FC293A821000284659 /* Packet.cpp in Sources */,
+				8BC709C52938FD010031B28A /* TCPClient.cpp in Sources */,
 				8B1FF3C12913142500A9C095 /* Renderer.cpp in Sources */,
+				8B0479F9293A7D9A00284659 /* TCPStream.cpp in Sources */,
 				8B1FF3B029130D5500A9C095 /* ContentView.swift in Sources */,
 				8B53B3E6291697AC00713715 /* TextureAtlas.cpp in Sources */,
 				8B672AED29281C7200E111B1 /* World.cpp in Sources */,
 				8B2B7A902917C51800916671 /* Math3D.cpp in Sources */,
 				8B1FF3BD29130F4400A9C095 /* GameView.swift in Sources */,
+				8BC709C829391CAB0031B28A /* VarInt.cpp in Sources */,
+				8B3ED5D62937D4F00071F51E /* Column.cpp in Sources */,
 				8B9B8322291528F400FB1030 /* GameViewController.mm in Sources */,
 				8B1FF3AE29130D5500A9C095 /* TudorCraftApp.swift in Sources */,
 			);
@@ -392,6 +452,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CLANG_CXX_LANGUAGE_STANDARD = "c++20";
 				CLANG_ENABLE_MODULES = YES;
 				CLANG_ENABLE_OBJC_WEAK = NO;
 				CODE_SIGN_ENTITLEMENTS = TudorCraft/TudorCraft.entitlements;
@@ -440,6 +501,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CLANG_CXX_LANGUAGE_STANDARD = "c++20";
 				CLANG_ENABLE_MODULES = YES;
 				CLANG_ENABLE_OBJC_WEAK = NO;
 				CODE_SIGN_ENTITLEMENTS = TudorCraft/TudorCraft.entitlements;
