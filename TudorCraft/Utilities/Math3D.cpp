@@ -9,46 +9,30 @@
 
 namespace Math3D {
 
-
-constexpr simd::float3 add( const simd::float3& a, const simd::float3& b ) {
-    return { a.x + b.x, a.y + b.y, a.z + b.z };
-}
-
 simd::float4x4 makePerspective( float fovRadians, float aspect, float znear, float zfar ) {
     using simd::float4;
-    
+
     float ys = 1.f / tanf(fovRadians * 0.5f);
     float xs = ys / aspect;
     float zs = zfar / ( znear - zfar );
-    
+
     return simd_matrix_from_rows((float4){ xs, 0.0f, 0.0f, 0.0f },
                                  (float4){ 0.0f, ys, 0.0f, 0.0f },
                                  (float4){ 0.0f, 0.0f, zs, znear * zs },
                                  (float4){ 0, 0, -1, 0 });
+    
+//    using simd::float4;
+//
+//    float xs = aspect * fovRadians;
+//    float ys = fovRadians;
+//    float zs = zfar / (zfar - znear);
+//    float smth1 = ( -zfar * znear ) / (zfar - znear);
+//
+//    return simd_matrix_from_rows((float4) { xs, 0,  0,      0 },
+//                                 (float4) { 0,  ys, 0,      0 },
+//                                 (float4) { 0,  0,  zs,     1 },
+//                                 (float4) { 0,  0,  smth1,  0 });
 }
-
-// TODO: Investigate if this is faster than just making a basic rotation matrix with sin and cos functions
-// This function basically rotates the world from initial position to a target vector
-// Similarly, for rotation and scaling matrixes, there is a specific way an inverse looks like
-// It might be faster than using simd's inverse, but it's a pain to write and uses three dot products on the last line...
-simd::float4x4 makePointAt(simd::float3 position, simd::float3 target, simd::float3 up) {
-    // Calculate new forward vector
-    simd::float3 newForward = target - position;
-    newForward = simd_normalize(newForward);
-    
-    // Calculate new Up vector
-    simd::float3 a = newForward * simd_dot(up, newForward);
-    simd::float3 newUp = up - a;
-    newUp = simd_normalize(newUp);
-    
-    // Calculate new right direction
-    simd::float3 newRight= simd_cross(newUp, newForward);
-    
-    return simd_matrix_from_rows((simd::float4){newRight.x,   newRight.y,   newRight.z,   0},
-                                 (simd::float4){newUp.x,      newUp.y,      newUp.z,      0},
-                                 (simd::float4){newForward.x, newForward.y, newForward.z, 0},
-                                 (simd::float4){position.x,   position.y,   position.z,    1});
-};
 
 simd::float4x4 makeXRotate4x4( float angleRadians ) {
     using simd::float4;
@@ -129,4 +113,13 @@ simd::float4x4 makeScale( const simd::float3& v ) {
 simd::float3x3 discardTranslation( const simd::float4x4& m ) {
     return simd_matrix( m.columns[0].xyz, m.columns[1].xyz, m.columns[2].xyz );
 }
+
+int cantorPairingFunction(int a, int b) {
+    return (a + b + 1) * (a + b) / 2 + b;
+};
+
+size_t hash3D(int a, int b, int c) {
+    return cantorPairingFunction(a, cantorPairingFunction(b, c));
+};
+
 }

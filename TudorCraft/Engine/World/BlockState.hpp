@@ -10,9 +10,33 @@
 
 #include <iostream>
 
-class Block {
+class BlockState {
 public:
-    static Block* Dirt();
+    static BlockState* GrassBlock();
+    
+    int frontTexture() {
+        return m_frontTextureIndex;
+    };
+    
+    int rightTexture() {
+        return m_rightTextureIndex;
+    };
+    
+    int backTexture() {
+        return m_backTextureIndex;
+    }
+    
+    int leftTexture() {
+        return m_leftTextureIndex;
+    }
+    
+    int bottomTexture() {
+        return m_bottomTextureIndex;
+    }
+    
+    int topTexture() {
+        return m_topTextureIndex;
+    }
     
 private:
     /// Indicates whether or not the block is collidable.
@@ -32,8 +56,11 @@ private:
     /// The identifier that the original Minecraft uses to locate its resources.
     std::string identifier;
     
+    /// The id used by the Minecraft Protocol when sending chunks of blocks.
+    int globalPaletteId;
+    
     //MARK: Default blocks
-    static Block *minecraft_dirt;
+    static BlockState *minecraft_grass_block;
 };
 
 #endif /* Block_hpp */

@@ -11,6 +11,7 @@
 // Std Library
 #include <string>
 #include <thread>
+#include <typeinfo>
 
 #include "AAPLUtilities.h"
 #include "VarInt.hpp"
@@ -28,16 +29,10 @@ private:
     void readLoop();
     
     //MARK: - Private members
+    MCP::ConnectionState m_state = MCP::ConnectionState::Unconnected;
     TCPStream m_server;
     
-    
-    std::string m_serverAddress;
-    int m_serverPort;
-    
-    
-    
-    unsigned char *m_writeBuffer;
-    unsigned char *m_recvBuffer;
+    std::thread m_recvThread;
 };
 
 #endif /* TCPClient_hpp */

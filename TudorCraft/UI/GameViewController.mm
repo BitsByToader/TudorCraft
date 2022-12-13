@@ -7,13 +7,15 @@
 
 #import "GameViewController.h"
 
-#include "Renderer.h"
+#include "Renderer.hpp"
+#include "World.hpp"
 #include "TCPClient.hpp"
 
 @implementation GameViewController
     MTKView* m_view;
     
     Renderer* m_renderer;
+    World* m_world;
     TCPClient* m_client;
 
     bool gamePaused = false;
@@ -51,13 +53,13 @@
     cc.alpha = 1.0;
     
     m_view.clearColor = cc;
-    
     m_view.depthStencilPixelFormat = MTLPixelFormatDepth32Float;
     m_view.clearDepth = 1.0;
+    m_view.colorPixelFormat = MTLPixelFormat::MTLPixelFormatBGRA8Unorm_sRGB;
     
     m_view.device = MTLCreateSystemDefaultDevice();
-    m_renderer = new Renderer();
-    m_view.colorPixelFormat = MTLPixelFormat::MTLPixelFormatBGRA8Unorm_sRGB;
+    m_world = World::shared();
+    m_renderer = Renderer::shared();
     
     // Configure the view to use the default device
     m_view.delegate = self;
@@ -70,7 +72,7 @@
     }
 #endif
     
-    m_client = new TCPClient("192.168.1.11", 25565);
+//    m_client = new TCPClient("127.0.0.1", 25565);
 }
 
 - (void)drawInMTKView:(nonnull MTKView *)view {

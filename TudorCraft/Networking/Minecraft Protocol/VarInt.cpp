@@ -23,6 +23,10 @@ VarInt::VarInt(int value) {
     int position = 0;
     
     while ( true ) {
+        if ( position >= MAX_SIZE) {
+            break;
+        };
+        
         if ( (value & ~SEGMENT_BITS) == 0 ) {
             // If the MSB is 0, then we don't have anything left to put in the buffer
             m_bytes[position] = value;

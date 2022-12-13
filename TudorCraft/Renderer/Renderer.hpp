@@ -8,22 +8,53 @@
 #ifndef Renderer_hpp
 #define Renderer_hpp
 
+#include <mutex>
+
 #include <Metal/Metal.hpp>
 #include <simd/simd.h>
 #include "ShaderTypes.h"
 #include "TextureAtlas.hpp"
 
-#define MAX_FRAMES_IN_FLIGHT 3
+#define MAX_FRAMES_IN_FLIGHT 1
 
 class Renderer {
 public:
     // MARK: Public Methods
+    /// Generic constructor for default Renderer (which is what will be used)
     Renderer();
+    
+    /// Default destructor.
     ~Renderer();
     
+    /// Getter for the global Renderer singleton.
+    static Renderer *shared();
+    
+    /// Notifies the renderer that the window size changed.
+    /// - Parameters:
+    ///   - width: The new width of the window.
+    ///   - height: The new height of the window.
     void windowSizeWillChange(unsigned int width, unsigned int height);
     
+    
+    /// Tells the renderer to draw in the drawable using the render descriptor.
+    /// - Parameters:
+    ///   - currentRPD: Render pass descriptor to use.
+    ///   - currentDrawable: Drawable to draw in.
     void draw(MTL::RenderPassDescriptor *currentRPD, MTL::Drawable* currentDrawable);
+    
+    
+    /// Getter for `m_instanceDataBuffer`.
+    InstanceData* instanceBuffer();
+    
+    /// Getter for a pointer to`m_instanceCount`.
+    int *instanceCount();
+    
+    /// Removes the `InstanceData` from `m_instanceDataBuffer` at the specifiec index.
+    ///
+    /// Removing is done by taking the last element from `m_instanceDataBuffer` and placing at the index that was removed.
+    /// This method automatically decreases `m_instanceCount`.
+    /// - Parameter index: The element's index to remove from the buffer.
+    void removeInstanceAt(int index);
     
     void forward();
     void backward();
@@ -37,15 +68,17 @@ public:
     void lookRight();
     void lookLeft();
 
+    std::mutex m_gpuMutex;
+    
 private:
+    static Renderer *globalObject;
+    
     // MARK: Private methods
     void loadMetal();
     void createHeap();
     void moveResourcesToHeap();
     static MTL::TextureDescriptor *newDescriptorFromTexture(MTL::Texture *texture,
                                                             MTL::StorageMode storageMode);
-    
-    int calculateMeshes(InstanceData *instanceData);
     
     // MARK: Private members
     /// The device we're using to render.
@@ -74,7 +107,10 @@ private:
     MTL::Buffer* m_indexBuffer;
     
     /// Instance data buffer
-    MTL::Buffer* m_instanceDataBuffers[MAX_FRAMES_IN_FLIGHT];
+    MTL::Buffer* m_instanceDataBuffers;
+    
+    /// Number of instances in any of the data buffers
+    int m_instanceCount = 0;
     
     /// Camera data buffer
     MTL::Buffer* m_cameraDataBuffer;
@@ -101,18 +137,7 @@ private:
     float m_pitchAngle = 0.f;
     
     simd::float3 m_playerPos = (simd::float3) { 0.f, 0.f, -20.f };
-    
-    int recalculateBlocks = MAX_FRAMES_IN_FLIGHT;
-    
-    // Basic block array that will mimick an actual implementation we'll have down the line
-    // 1 means a block is there
-    // 0 means a block is not there
-    uint64_t blocks[16 * 16 * 16] =
-    {
-        1
-    };
-    
-    int instanceCount = 0;
+    bool fuckmemate = true;
 };
 
 #endif /* Renderer_hpp */

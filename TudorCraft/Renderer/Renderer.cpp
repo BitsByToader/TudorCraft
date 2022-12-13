@@ -1,4 +1,4 @@
-//
+
 //  Renderer.cpp
 //  TudorCraft
 //
@@ -19,9 +19,20 @@
 
 #include "AAPLUtilities.h"
 
-#include "Renderer.h"
+#include "Renderer.hpp"
+#include "World.hpp"
 #include "ShaderTypes.h"
 #include "Math3D.hpp"
+
+//MARK: - Singleton
+Renderer *Renderer::globalObject = nullptr;
+Renderer *Renderer::shared() {
+    if ( globalObject == nullptr ) {
+        globalObject = new Renderer();
+    };
+    
+    return globalObject;
+}
 
 // MARK: - Constructor
 Renderer::Renderer() {
@@ -53,34 +64,15 @@ Renderer::~Renderer() {
     m_heap->release();
     m_depthState->release();
     
-    for ( int i = 0; i < MAX_FRAMES_IN_FLIGHT; i++ ) {
-        m_instanceDataBuffers[i]->release();
-    }
+//    for ( int i = 0; i < MAX_FRAMES_IN_FLIGHT; i++ ) {
+//        m_instanceDataBuffers[i]->release();
+//    }
+    
+    m_instanceDataBuffers->release();
     
     for ( int i = 0; i < 3; i++ ) {
         m_texture[i]->release();
     }
-}
-
-// MARK: - Transformation matrixes for mesh creation
-const inline simd::float4x4 moveFaceToBack() {
-    return Math3D::makeYRotate4x4(M_PI);
-}
-
-const inline simd::float4x4 moveFaceToRight() {
-    return Math3D::makeYRotate4x4(M_PI/2);
-}
-
-const inline simd::float4x4 moveFaceToLeft() {
-    return Math3D::makeYRotate4x4(3 * M_PI/2);
-}
-
-const inline simd::float4x4 moveFaceToTop() {
-    return Math3D::makeXRotate4x4(M_PI/2);
-}
-
-const inline simd::float4x4 moveFaceToBottom() {
-    return Math3D::makeXRotate4x4(3 * M_PI/2);
 }
 
 //MARK: - Load metal
@@ -116,14 +108,12 @@ void Renderer::loadMetal() {
     m_cameraDataBuffer = m_device->newBuffer(sizeof(CameraData), MTL::ResourceStorageModeShared);
     
     // Create a buffer for each frame we can work independently
-    for ( int i = 0; i < MAX_FRAMES_IN_FLIGHT; i++ ) {
-        // number of blocks times the number of faces we can possibly have
-        m_instanceDataBuffers[i] = m_device->newBuffer(16 * 16 * 16 * 6 * sizeof(InstanceData), MTL::ResourceStorageModeShared);
-    }
+//    for ( int i = 0; i < MAX_FRAMES_IN_FLIGHT; i++ ) {
+//        // number of blocks times the number of faces we can possibly have
+//        m_instanceDataBuffers[i] = m_device->newBuffer(16 * 16 * 16 * 6 * sizeof(InstanceData), MTL::ResourceStorageModeShared);
+//    }
     
-    for ( int i = 0; i < 16*16*16; i++ ) {
-        blocks[i] = 1;
-    }
+    m_instanceDataBuffers = m_device->newBuffer(16 * 16 * 16 * 6 * sizeof(InstanceData), MTL::ResourceStorageModeShared);
     
     createHeap();
     moveResourcesToHeap();
@@ -282,88 +272,6 @@ void Renderer::moveResourcesToHeap() {
     pPool->release();
 };
 
-//MARK: - Calculate mesh faces
-int Renderer::calculateMeshes(InstanceData *instanceData) {
-    using namespace simd;
-    const float scl = 5.f;
-    
-    int instanceCount = 0;
-    
-    int limit_x = 16;
-    int limit_y = 16;
-    int limit_z = 16;
-
-    const float4x4 scale = Math3D::makeScale( (float3){ scl, scl, scl } );
-
-    for ( int k = 0; k < limit_y; k++ ) {
-        for ( int i = 0; i < limit_z; i++ ) {
-            for ( int j = 0; j < limit_x; j++ ) {
-                if ( blocks[k * limit_x * limit_z + i*limit_x + j] != 0 ) {
-                    // Loop through every single block
-                    // Create the main block position
-                    float4x4 blockPositionTranslationMatrix = Math3D::makeTranslate((float3) { 5.f * j, 5.f * k, -(5.f * i) } );
-
-                    if ( i == 0 || blocks[(k * limit_x * limit_z) + ((i-1) * limit_x) + j] == 0 ) {
-                        // Front of block
-                        instanceData[instanceCount].transform = blockPositionTranslationMatrix * scale;
-                        instanceData[instanceCount].normalTransform = Math3D::discardTranslation(instanceData[instanceCount].transform);
-                        instanceData[instanceCount].textureId = 0;
-                        
-                        instanceCount++;
-                    }
-
-                    if ( j == 0 || blocks[(k * limit_x * limit_z) + (i * limit_x) + (j - 1)] == 0 ) {
-                        // Left of block
-                        instanceData[instanceCount].transform = blockPositionTranslationMatrix * scale * moveFaceToLeft();
-                        instanceData[instanceCount].normalTransform = Math3D::discardTranslation(instanceData[instanceCount].transform);
-                        instanceData[instanceCount].textureId = 0;
-                        
-                        instanceCount++;
-                    }
-
-                    if ( i == limit_z - 1 || blocks[(k * limit_x * limit_z) + ((i+1) * limit_x) + j] == 0 ){
-                        // Back of block
-                        instanceData[instanceCount].transform = blockPositionTranslationMatrix * scale * moveFaceToBack();
-                        instanceData[instanceCount].normalTransform = Math3D::discardTranslation(instanceData[instanceCount].transform);
-                        instanceData[instanceCount].textureId = 0;
-                        
-                        instanceCount++;
-                    }
-
-                    if ( j == limit_x-1 || blocks[(k * limit_x * limit_z) + (i * limit_x) + (j + 1)] == 0 ){
-                        // Right of block
-                        instanceData[instanceCount].transform = blockPositionTranslationMatrix * scale * moveFaceToRight();
-                        instanceData[instanceCount].normalTransform = Math3D::discardTranslation(instanceData[instanceCount].transform);
-                        instanceData[instanceCount].textureId = 0;
-                        
-                        instanceCount++;
-                    }
-                    
-                    if ( k == limit_y - 1 || blocks[((k+1) * limit_x * limit_z) + (i * limit_x) + j] == 0 ){
-                        // Top of block
-                        instanceData[instanceCount].transform = blockPositionTranslationMatrix * scale * moveFaceToTop();
-                        instanceData[instanceCount].normalTransform = Math3D::discardTranslation(instanceData[instanceCount].transform);
-                        instanceData[instanceCount].textureId = 1;
-                        
-                        instanceCount++;
-                    }
-
-                    if ( k == 0 || blocks[((k-1) * limit_x * limit_z) + (i * limit_x) + j] == 0 ) {
-                        // Bottom of block
-                        instanceData[instanceCount].transform = blockPositionTranslationMatrix * scale * moveFaceToBottom();
-                        instanceData[instanceCount].normalTransform = Math3D::discardTranslation(instanceData[instanceCount].transform);
-                        instanceData[instanceCount].textureId = 2;
-                        
-                        instanceCount++;
-                    }
-                }
-            }
-        }
-    }
-    
-    return instanceCount;
-};
-
 // MARK: - Window size will change method
 void Renderer::windowSizeWillChange(unsigned int width, unsigned int height) {
     NS::AutoreleasePool* pPool = NS::AutoreleasePool::alloc()->init();
@@ -383,26 +291,38 @@ void Renderer::draw(MTL::RenderPassDescriptor *currentRPD, MTL::Drawable* curren
     using namespace simd;
     
     m_frame = (m_frame + 1) % MAX_FRAMES_IN_FLIGHT;
-    MTL::Buffer* instanceDataBuffer = m_instanceDataBuffers[m_frame];
+//    MTL::Buffer* instanceDataBuffer = m_instanceDataBuffers[m_frame];
+    MTL::Buffer* instanceDataBuffer = m_instanceDataBuffers;
+    
+//    if ( m_instanceCount == 0 ) {
+//        return;
+//    }
     
     // Create a new command buffer for each render pass to the current drawable.
     MTL::CommandBuffer *commandBuffer = m_commandQueue->commandBuffer();
     commandBuffer->setLabel(AAPLSTR("WorldDrawingCommand"));
     
     // Wait for the instance buffer to be available
-    dispatch_semaphore_wait( m_semaphore, DISPATCH_TIME_FOREVER );
+//    dispatch_semaphore_wait( m_semaphore, DISPATCH_TIME_FOREVER );
+    m_gpuMutex.lock();
     Renderer* pRenderer = this;
     commandBuffer->addCompletedHandler( ^void( MTL::CommandBuffer* pCmd ) {
-        dispatch_semaphore_signal( pRenderer->m_semaphore );
+//        dispatch_semaphore_signal( pRenderer->m_semaphore );
+        m_gpuMutex.unlock();
     });
     
-    if ( recalculateBlocks ) {
-        InstanceData *instanceData = reinterpret_cast<InstanceData *>(instanceDataBuffer->contents());
-        
-        instanceCount = calculateMeshes(instanceData);
-        
-        --recalculateBlocks;
-    }
+//    if ( fuckmemate ) {
+//        for ( int i = 0; i < 16; i++ ) {
+//            for ( int j = 0; j < 3; j++ ) {
+//                World::shared()->placeBlockAt(i, j, 0, BlockState::GrassBlock());
+//            }
+//        }
+//
+//
+//
+//
+//        fuckmemate = false;
+//    }
     
     // MARK: World transformations
     CameraData *cameraData = reinterpret_cast<CameraData *>(m_cameraDataBuffer->contents());
@@ -436,13 +356,15 @@ void Renderer::draw(MTL::RenderPassDescriptor *currentRPD, MTL::Drawable* curren
         renderEncoder->setCullMode( MTL::CullModeBack );
         renderEncoder->setFrontFacingWinding( MTL::Winding::WindingCounterClockwise );
         
+//        AAPL_PRINT(m_instanceCount);
+        
         // Draw our cubes.
         renderEncoder->drawIndexedPrimitives(MTL::PrimitiveType::PrimitiveTypeTriangle, // Primitive type
                                              6, // Index count
                                              MTL::IndexType::IndexTypeUInt16, // Index type
                                              m_indexBuffer, // Index buffer
                                              0, // Index buffer offset
-                                             instanceCount); // Instance count
+                                             m_instanceCount); // Instance count
         
         renderEncoder->endEncoding();
         commandBuffer->presentDrawable(currentDrawable);
@@ -477,10 +399,20 @@ void Renderer::right() {
 
 void Renderer::up() {
     m_playerPos.y -= 1.f;
+    
+    m_gpuMutex.lock();
+    World *w = World::shared();
+    w->placeBlockAt(0, 0, 0, nullptr);
+    m_gpuMutex.unlock();
 };
 
 void Renderer::down() {
     m_playerPos.y += 1.f;
+        
+//    m_gpuMutex.lock();
+//    World *w = World::shared();
+//    w->placeBlockAt(0, 0, 0, BlockState::GrassBlock());
+//    m_gpuMutex.unlock();
 };
 
 void Renderer::lookUp() {
@@ -510,3 +442,22 @@ void Renderer::lookLeft() {
         m_yawAngle -= 0.025f;
     }
 };
+
+//MARK: - InstanceDataBuffer getter
+InstanceData *Renderer::instanceBuffer() { 
+    return reinterpret_cast<InstanceData *>(m_instanceDataBuffers->contents());
+}
+
+//MARK: - Instance count getter
+int *Renderer::instanceCount() {
+    return &m_instanceCount;
+}
+
+//MARK: - Remove instance method
+void Renderer::removeInstanceAt(int index) {
+    InstanceData *buffer = reinterpret_cast<InstanceData *>(m_instanceDataBuffers->contents());
+    buffer[index] = buffer[m_instanceCount - 1];
+    --m_instanceCount;
+};
+
+
