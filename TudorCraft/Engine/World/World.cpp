@@ -21,7 +21,9 @@ World::World() {
         }
     }
     
+    Renderer::shared()->m_gpuMutex.lock();
     chunk->calculateMesh();
+    Renderer::shared()->m_gpuMutex.unlock();
     
     m_chunks[{0,0,0}] = chunk;
 };
@@ -45,7 +47,6 @@ World *World::shared() {
 }
 
 #warning Use the actual chunk sizes instead of 16
-#warning Exception handling!
 Chunk* World::getChunkAt(int x, int y, int z) {
     Tuple3D chunkCoords = { x/16, y/16, z/16 };
     return m_chunks[chunkCoords];
@@ -54,7 +55,6 @@ Chunk* World::getChunkAt(int x, int y, int z) {
 Block *World::getBlockAt(int x, int y, int z) {
     Chunk *c = getChunkAt(x, y, z);
     if ( c != nullptr ) {
-        std::cout << "Got block " << x%16<<","<<y%16<<","<<z%16 << " from chunk " << x/16<<","<<y/16<<","<< z/16 << std::endl;
         return c->getBlockAt(x%16, y%16, z%16);
     } else {
         return nullptr;

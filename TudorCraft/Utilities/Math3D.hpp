@@ -29,7 +29,6 @@ simd::float3x3 makeYRotate3x3( float angleRadians );
 simd::float3x3 makeZRotate3x3( float angleRadians );
 
 // MARK: - Transformation matrixes for mesh creation
-#warning Question: If I try to define these in Math3D.cpp, it complains that the inline functions are not defined.
 inline const simd::float4x4 moveFaceToBack() {
     return makeYRotate4x4(M_PI);
 };

@@ -20,20 +20,25 @@
 #define BLOCKS_NUM_Z 16
 #define BLOCKS_NUM_TOTAL 16*16*16
 
-#warning Question: Class or struct here?
 
+
+enum Faces: unsigned char {
+    Front   = 0,
+    Left    = 1,
+    Back    = 2,
+    Right   = 3,
+    Bottom  = 4,
+    Top     = 5
+};
+
+#warning Question: Class or struct here?
 ///  Basic struct which holds the state and the indices for the instance data.
 struct Block {
     /// The state of the block
     BlockState *state = nullptr;
     
     /// Instance indices for each face of the block.
-    int frontInstanceIndex = -1;
-    int rightInstanceIndex = -1;
-    int backInstanceIndex = -1;
-    int leftInstanceIndex = -1;
-    int bottomInstanceIndex = -1;
-    int topInstanceIndex = -1;
+    int faceIndices[6];
 };
 
 #warning Question:Any ideas to save space?
@@ -53,7 +58,7 @@ public:
     ///   - z: Z coordinate of block to get from the chunk
     ///
     /// - Returns:Returns the specified block or `nullptr` if the block is an air block.
-    inline Block *getBlockAt(int x, int y, int z);
+    Block *getBlockAt(int x, int y, int z);
     
     /// Calculates the block faces that need to be rendered in the chunk.
     ///

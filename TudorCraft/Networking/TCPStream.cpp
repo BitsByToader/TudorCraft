@@ -7,14 +7,9 @@
 
 #include "TCPStream.hpp"
 
-#warning "TODOS"
-//TODO: Use templates to generalize the >> operators for primitives like int, short, etc
 //TODO: Create utlity methods to check for overflow
 //TODO: VarInts are currently being read from the network byte by byte, which is inherrently slow(er),
-//      so test how slow this is and optionally read the whole 5 bytes, and if there isn't a need for that many,
-//      put them in m_recvBuffer and take them from there for the next read
-
-//TODO: Currently
+//      so test how slow this is and optionally read the whole 5 bytes, and if there isn't a need for that         many, put them in m_recvBuffer and take them from there for the next read.
 
 TCPStream::TCPStream(MCP::ConnectionState *state, std::string serverAddress, int port) {
     m_connectionState = state;
@@ -73,7 +68,6 @@ long TCPStream::receiveFromSocket(void *buffer, int64_t length) {
     return bytesRead;
 };
 
-#warning "Question: Should I use istream and ostream?"
 const TCPStream &TCPStream::operator>>(MCP::Packet *packet) {
     MCP::VarInt packetLength;
     MCP::VarInt packetId;
@@ -264,7 +258,6 @@ const TCPStream &TCPStream::operator<<(MCP::Uuid value) {
     return *this;
 };
 
-#warning "Question: Templates, but only a specific set of types?"
 const TCPStream &TCPStream::operator>>(int64_t *value) {
     unsigned char *toReceive = reinterpret_cast<unsigned char *>(value);
     receiveFromSocket(toReceive, sizeof(int64_t));

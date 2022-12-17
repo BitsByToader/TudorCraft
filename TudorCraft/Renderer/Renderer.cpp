@@ -9,6 +9,8 @@
 #include <stdlib.h>
 #include <sys/sysctl.h>
 #include <simd/simd.h>
+#include <chrono>
+#include <ctime>
 
 #define NS_PRIVATE_IMPLEMENTATION
 #include <Foundation/Foundation.hpp>
@@ -21,6 +23,7 @@
 
 #include "Renderer.hpp"
 #include "World.hpp"
+#include "Chunk.hpp"
 #include "ShaderTypes.h"
 #include "Math3D.hpp"
 
@@ -42,8 +45,6 @@ Renderer::Renderer() {
     m_commandQueue = m_device->newCommandQueue();
     
     AAPL_PRINT("Metal device used to render:", m_device->name()->utf8String());
-    
-    m_semaphore = dispatch_semaphore_create(MAX_FRAMES_IN_FLIGHT);
     
     // Create a blank texture atlas
     m_atlas = new TextureAtlas(m_device);
@@ -68,7 +69,7 @@ Renderer::~Renderer() {
 //        m_instanceDataBuffers[i]->release();
 //    }
     
-    m_instanceDataBuffers->release();
+    m_instanceDataBuffer->release();
     
     for ( int i = 0; i < 3; i++ ) {
         m_texture[i]->release();
@@ -113,7 +114,7 @@ void Renderer::loadMetal() {
 //        m_instanceDataBuffers[i] = m_device->newBuffer(16 * 16 * 16 * 6 * sizeof(InstanceData), MTL::ResourceStorageModeShared);
 //    }
     
-    m_instanceDataBuffers = m_device->newBuffer(16 * 16 * 16 * 6 * sizeof(InstanceData), MTL::ResourceStorageModeShared);
+    m_instanceDataBuffer = m_device->newBuffer(16 * 16 * 16 * 6 * sizeof(InstanceData), MTL::ResourceStorageModeShared);
     
     createHeap();
     moveResourcesToHeap();
@@ -286,43 +287,23 @@ void Renderer::windowSizeWillChange(unsigned int width, unsigned int height) {
 
 // MARK: - Draw method
 void Renderer::draw(MTL::RenderPassDescriptor *currentRPD, MTL::Drawable* currentDrawable) {
+    if ( m_instanceCount == 0 ) {
+        return;
+    }
+    
     NS::AutoreleasePool* pPool = NS::AutoreleasePool::alloc()->init();
     
     using namespace simd;
-    
-    m_frame = (m_frame + 1) % MAX_FRAMES_IN_FLIGHT;
-//    MTL::Buffer* instanceDataBuffer = m_instanceDataBuffers[m_frame];
-    MTL::Buffer* instanceDataBuffer = m_instanceDataBuffers;
-    
-//    if ( m_instanceCount == 0 ) {
-//        return;
-//    }
     
     // Create a new command buffer for each render pass to the current drawable.
     MTL::CommandBuffer *commandBuffer = m_commandQueue->commandBuffer();
     commandBuffer->setLabel(AAPLSTR("WorldDrawingCommand"));
     
     // Wait for the instance buffer to be available
-//    dispatch_semaphore_wait( m_semaphore, DISPATCH_TIME_FOREVER );
     m_gpuMutex.lock();
-    Renderer* pRenderer = this;
     commandBuffer->addCompletedHandler( ^void( MTL::CommandBuffer* pCmd ) {
-//        dispatch_semaphore_signal( pRenderer->m_semaphore );
         m_gpuMutex.unlock();
     });
-    
-//    if ( fuckmemate ) {
-//        for ( int i = 0; i < 16; i++ ) {
-//            for ( int j = 0; j < 3; j++ ) {
-//                World::shared()->placeBlockAt(i, j, 0, BlockState::GrassBlock());
-//            }
-//        }
-//
-//
-//
-//
-//        fuckmemate = false;
-//    }
     
     // MARK: World transformations
     CameraData *cameraData = reinterpret_cast<CameraData *>(m_cameraDataBuffer->contents());
@@ -346,7 +327,7 @@ void Renderer::draw(MTL::RenderPassDescriptor *currentRPD, MTL::Drawable* curren
         
         // Pass in the parameter data.
         renderEncoder->setVertexBuffer(m_vertices, 0, VertexInputIndexVertices);
-        renderEncoder->setVertexBuffer(instanceDataBuffer, 0, VertexInputIndexInstanceData);
+        renderEncoder->setVertexBuffer(m_instanceDataBuffer, 0, VertexInputIndexInstanceData);
         renderEncoder->setVertexBuffer(m_cameraDataBuffer, 0, VertexInputIndexCameraData);
         // TODO: This might need some optimization?
         renderEncoder->setFragmentBuffer(m_fragmentShaderArgBuffer, 0, FragmentInputIndexTextures);
@@ -408,11 +389,11 @@ void Renderer::up() {
 
 void Renderer::down() {
     m_playerPos.y += 1.f;
-        
-//    m_gpuMutex.lock();
-//    World *w = World::shared();
-//    w->placeBlockAt(0, 0, 0, BlockState::GrassBlock());
-//    m_gpuMutex.unlock();
+    
+    m_gpuMutex.lock();
+    World *w = World::shared();
+    w->placeBlockAt(0, 0, 0, BlockState::GrassBlock());
+    m_gpuMutex.unlock();
 };
 
 void Renderer::lookUp() {
@@ -445,7 +426,7 @@ void Renderer::lookLeft() {
 
 //MARK: - InstanceDataBuffer getter
 InstanceData *Renderer::instanceBuffer() { 
-    return reinterpret_cast<InstanceData *>(m_instanceDataBuffers->contents());
+    return reinterpret_cast<InstanceData *>(m_instanceDataBuffer->contents());
 }
 
 //MARK: - Instance count getter
@@ -455,8 +436,24 @@ int *Renderer::instanceCount() {
 
 //MARK: - Remove instance method
 void Renderer::removeInstanceAt(int index) {
-    InstanceData *buffer = reinterpret_cast<InstanceData *>(m_instanceDataBuffers->contents());
+    InstanceData *buffer = reinterpret_cast<InstanceData *>(m_instanceDataBuffer->contents());
     buffer[index] = buffer[m_instanceCount - 1];
+    
+    // Get the block we moved the instance of
+    Block *b = World::shared()->getBlockAt(buffer[index].blockCoordinates.x,
+                                           buffer[index].blockCoordinates.y,
+                                           buffer[index].blockCoordinates.z);
+    
+    // Search for the face with the old index and update it to the new index.
+    if ( b != nullptr ) {
+        for ( int i = 0; i < 6; i++ ) {
+            if ( b->faceIndices[i] == m_instanceCount-1 ) {
+                b->faceIndices[i] = index;
+                break;
+            }
+        }
+    }
+    
     --m_instanceCount;
 };
 

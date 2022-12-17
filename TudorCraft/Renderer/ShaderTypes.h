@@ -48,8 +48,11 @@ typedef struct {
     // Rotation matrix to be applied to the triangle's normal during render
     matrix_float3x3 normalTransform;
     
-    // The index of the texture we want to use from the texture array
+    // The index of the texture we want to use from the texture array for the triangle.
     int textureId;
+    
+    // The block which the triangle belongs to.
+    simd_int3 blockCoordinates;
 } InstanceData;
 
 //MARK: - CameraData struct

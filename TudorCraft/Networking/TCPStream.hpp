@@ -76,7 +76,6 @@ private:
     MCP::ConnectionState *m_connectionState;
     int m_socketDescriptor;
     
-#warning Question: regular arr vs std::vector / std::array? (perfomance implications?)
     unsigned char m_sendBuffer[SEND_BUFFER_SIZE];
     int m_sendBufferCurrentOffset = 0;
     

@@ -15,8 +15,6 @@
 #include "ShaderTypes.h"
 #include "TextureAtlas.hpp"
 
-#define MAX_FRAMES_IN_FLIGHT 1
-
 class Renderer {
 public:
     // MARK: Public Methods
@@ -107,7 +105,7 @@ private:
     MTL::Buffer* m_indexBuffer;
     
     /// Instance data buffer
-    MTL::Buffer* m_instanceDataBuffers;
+    MTL::Buffer* m_instanceDataBuffer;
     
     /// Number of instances in any of the data buffers
     int m_instanceCount = 0;
@@ -126,9 +124,6 @@ private:
     
     /// The atlas we're using to load the textures from.
     TextureAtlas *m_atlas;
-    
-    /// Semaphore used for synchronizing the CPU and GPU
-    dispatch_semaphore_t m_semaphore;
     
     /// Frame we're currently working on
     int m_frame;

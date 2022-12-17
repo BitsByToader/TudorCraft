@@ -12,8 +12,6 @@
 #include "Math3D.hpp"
 #include "World.hpp"
 
-#warning "All current problems stem from one fact alone: When you remove an instance from the buffer, you don't update the block whose instance was moved to the previously deleted index. Fix this???"
-
 Chunk::Chunk(int x, int y, int z) {
     m_xCoordinate = x;
     m_yCoordinate = y;
@@ -24,12 +22,10 @@ Chunk::Chunk(int x, int y, int z) {
     // Initialize the chunk with empty blocks
     for ( int i = 0; i < BLOCKS_NUM_TOTAL; i++ ) {
         m_blocks[i].state = nullptr;
-        m_blocks[i].frontInstanceIndex = -1;
-        m_blocks[i].rightInstanceIndex = -1;
-        m_blocks[i].backInstanceIndex = -1;
-        m_blocks[i].leftInstanceIndex = -1;
-        m_blocks[i].bottomInstanceIndex = -1;
-        m_blocks[i].topInstanceIndex = -1;
+        
+        for ( int j = 0; j < 6; j++ ) {
+            m_blocks[i].faceIndices[j] = -1;
+        }
     }
 };
 
@@ -76,7 +72,7 @@ void Chunk::calculateMesh(Renderer *renderer) {
                         buffer[*instanceCount].transform = blockPositionTranslationMatrix * scale;
                         buffer[*instanceCount].normalTransform = Math3D::discardTranslation(buffer[*instanceCount].transform);
                         buffer[*instanceCount].textureId = currBlock->state->frontTexture();
-                        currBlock->frontInstanceIndex = *instanceCount;
+                        currBlock->faceIndices[Faces::Front] = *instanceCount;
                         
                         (*instanceCount)++;
                     }
@@ -86,7 +82,7 @@ void Chunk::calculateMesh(Renderer *renderer) {
                         buffer[*instanceCount].transform = blockPositionTranslationMatrix * scale * moveFaceToLeft();
                         buffer[*instanceCount].normalTransform = discardTranslation(buffer[*instanceCount].transform);
                         buffer[*instanceCount].textureId = currBlock->state->leftTexture();
-                        currBlock->leftInstanceIndex = *instanceCount;
+                        currBlock->faceIndices[Faces::Left] = *instanceCount;
                         
                         (*instanceCount)++;
                     }
@@ -96,7 +92,7 @@ void Chunk::calculateMesh(Renderer *renderer) {
                         buffer[*instanceCount].transform = blockPositionTranslationMatrix * scale * moveFaceToBack();
                         buffer[*instanceCount].normalTransform = discardTranslation(buffer[*instanceCount].transform);
                         buffer[*instanceCount].textureId = currBlock->state->backTexture();
-                        currBlock->backInstanceIndex = *instanceCount;
+                        currBlock->faceIndices[Faces::Back] = *instanceCount;
                         
                         (*instanceCount)++;
                     }
@@ -106,7 +102,7 @@ void Chunk::calculateMesh(Renderer *renderer) {
                         buffer[*instanceCount].transform = blockPositionTranslationMatrix * scale * moveFaceToRight();
                         buffer[*instanceCount].normalTransform = discardTranslation(buffer[*instanceCount].transform);
                         buffer[*instanceCount].textureId = currBlock->state->rightTexture();
-                        currBlock->rightInstanceIndex = *instanceCount;
+                        currBlock->faceIndices[Faces::Right] = *instanceCount;
                         
                         (*instanceCount)++;
                     }
@@ -116,7 +112,7 @@ void Chunk::calculateMesh(Renderer *renderer) {
                         buffer[*instanceCount].transform = blockPositionTranslationMatrix * scale * moveFaceToTop();
                         buffer[*instanceCount].normalTransform = discardTranslation(buffer[*instanceCount].transform);
                         buffer[*instanceCount].textureId = currBlock->state->topTexture();
-                        currBlock->topInstanceIndex = *instanceCount;
+                        currBlock->faceIndices[Faces::Top] = *instanceCount;
                         
                         (*instanceCount)++;
                     }
@@ -126,7 +122,7 @@ void Chunk::calculateMesh(Renderer *renderer) {
                         buffer[*instanceCount].transform = blockPositionTranslationMatrix * scale * moveFaceToBottom();
                         buffer[*instanceCount].normalTransform = discardTranslation(buffer[*instanceCount].transform);
                         buffer[*instanceCount].textureId = currBlock->state->bottomTexture();
-                        currBlock->bottomInstanceIndex = *instanceCount;
+                        currBlock->faceIndices[Faces::Bottom] = *instanceCount;
                         
                         (*instanceCount)++;
                     }
@@ -152,8 +148,6 @@ void Chunk::placeBlockAt(int x, int y, int z, BlockState *state, Renderer *rende
     const float4x4 scale = makeScale( (float3){ scl, scl, scl } );
     
     if ( state != nullptr ) {
-        printf("Placing block at: %d %d %d\n", x, y, z);
-        
         // We're placing a block.
         m_blockCount++;
         
@@ -166,207 +160,223 @@ void Chunk::placeBlockAt(int x, int y, int z, BlockState *state, Renderer *rende
         // Front of block
         nextBlock = world->getBlockAt(x, y, z-1);
         if ( nextBlock == nullptr || nextBlock->state == nullptr ) {
-            printf("\tDrawing front face.\n");
-            
             // The block doesn't exist or it is an air block.
             // Draw face.
             buffer[*count].transform = blockPositionTranslationMatrix * scale;
             buffer[*count].normalTransform = Math3D::discardTranslation(buffer[*count].transform);
             buffer[*count].textureId = currBlock->state->frontTexture();
-            currBlock->frontInstanceIndex = *count;
+            buffer[*count].blockCoordinates = {x, y, z};
+            currBlock->faceIndices[Faces::Front] = *count;
             
             ++(*count);
             
         } else {
-            printf("\tRemoving back face.\n");
             // The block exists and it isn't an air block.
             // Don't draw face, but remove the neighbour's face.
-            renderer->removeInstanceAt(nextBlock->backInstanceIndex);
-            nextBlock->backInstanceIndex = -1;
+            renderer->removeInstanceAt(nextBlock->faceIndices[Faces::Back]);
+            nextBlock->faceIndices[Faces::Back] = -1;
         }
         
         // Left of block
         nextBlock = world->getBlockAt(x-1, y, z);
         if ( nextBlock == nullptr || nextBlock->state == nullptr ) {
-            printf("\tDrawing left face.\n");
             buffer[*count].transform = blockPositionTranslationMatrix * scale * moveFaceToLeft();
             buffer[*count].normalTransform = discardTranslation(buffer[*count].transform);
             buffer[*count].textureId = currBlock->state->leftTexture();
-            currBlock->leftInstanceIndex = *count;
+            buffer[*count].blockCoordinates = {x, y, z};
+            currBlock->faceIndices[Faces::Left] = *count;
             
             ++(*count);
         } else {
-            printf("\tRemoving right face.\n");
-            renderer->removeInstanceAt(nextBlock->rightInstanceIndex);
-            nextBlock->rightInstanceIndex = -1;
+            renderer->removeInstanceAt(nextBlock->faceIndices[Faces::Right]);
+            nextBlock->faceIndices[Faces::Right] = -1;
         }
        
         // Back of block
         nextBlock = world->getBlockAt(x, y, z+1);
         if ( nextBlock == nullptr || nextBlock->state == nullptr ) {
-            printf("\tDrawing back face.\n");
             buffer[*count].transform = blockPositionTranslationMatrix * scale * moveFaceToBack();
             buffer[*count].normalTransform = discardTranslation(buffer[*count].transform);
             buffer[*count].textureId = currBlock->state->backTexture();
-            currBlock->backInstanceIndex = *count;
+            buffer[*count].blockCoordinates = {x, y, z};
+            currBlock->faceIndices[Faces::Back] = *count;
             
             ++(*count);
         } else {
-            printf("\tRemoving front face.\n");
-            renderer->removeInstanceAt(nextBlock->frontInstanceIndex);
-            nextBlock->frontInstanceIndex = -1;
+            renderer->removeInstanceAt(nextBlock->faceIndices[Faces::Front]);
+            nextBlock->faceIndices[Faces::Front] = -1;
         }
         
         // Right of block
         nextBlock = world->getBlockAt(x+1, y, z);
         if ( nextBlock == nullptr || nextBlock->state == nullptr ) {
-            printf("\tDrawing right face.\n");
+//            printf("\tDrawing right face.\n");
             buffer[*count].transform = blockPositionTranslationMatrix * scale * moveFaceToRight();
             buffer[*count].normalTransform = discardTranslation(buffer[*count].transform);
             buffer[*count].textureId = currBlock->state->rightTexture();
-            currBlock->rightInstanceIndex = *count;
+            buffer[*count].blockCoordinates = {x, y, z};
+            currBlock->faceIndices[Faces::Right] = *count;
             
             ++(*count);
         } else {
-            printf("\tRemoving left face.\n");
-            renderer->removeInstanceAt(nextBlock->leftInstanceIndex);
-            nextBlock->leftInstanceIndex = -1;
+            renderer->removeInstanceAt(nextBlock->faceIndices[Faces::Left]);
+            nextBlock->faceIndices[Faces::Left] = -1;
         }
         
         // Top of block
         nextBlock = world->getBlockAt(x, y+1, z);
         if ( nextBlock == nullptr || nextBlock->state == nullptr ) {
-            printf("\tDrawing top face.\n");
+//            printf("\tDrawing top face.\n");
             buffer[*count].transform = blockPositionTranslationMatrix * scale * moveFaceToTop();
             buffer[*count].normalTransform = discardTranslation(buffer[*count].transform);
             buffer[*count].textureId = currBlock->state->topTexture();
-            currBlock->topInstanceIndex = *count;
+            buffer[*count].blockCoordinates = {x, y, z};
+            currBlock->faceIndices[Faces::Top] = *count;
             
             ++(*count);
         } else {
-            printf("\tRemoving bottom face.\n");
-            renderer->removeInstanceAt(nextBlock->bottomInstanceIndex);
-            nextBlock->bottomInstanceIndex = -1;
+            renderer->removeInstanceAt(nextBlock->faceIndices[Faces::Bottom]);
+            nextBlock->faceIndices[Faces::Bottom] = -1;
         }
         
         // Bottom of block
         nextBlock = world->getBlockAt(x, y-1, z);
         if ( nextBlock == nullptr || nextBlock->state == nullptr ) {
-            printf("\tDrawing bottom face.\n");
             buffer[*count].transform = blockPositionTranslationMatrix * scale * moveFaceToBottom();
             buffer[*count].normalTransform = discardTranslation(buffer[*count].transform);
             buffer[*count].textureId = currBlock->state->bottomTexture();
-            currBlock->bottomInstanceIndex = *count;
+            buffer[*count].blockCoordinates = {x, y, z};
+            currBlock->faceIndices[Faces::Bottom] = *count;
             
             ++(*count);
         } else {
-            printf("\tRemoving top face.\n");
-            renderer->removeInstanceAt(nextBlock->topInstanceIndex);
-            nextBlock->topInstanceIndex = -1;
+            renderer->removeInstanceAt(nextBlock->faceIndices[Faces::Top]);
+            nextBlock->faceIndices[Faces::Top] = -1;
         }
     } else {
         // We're placing an air block, aka we're removing the block
         m_blockCount--;
         
-        float4x4 blockPositionTranslationMatrix =
-            makeTranslate((float3) {m_xCoordinate * BLOCKS_NUM_X + scl*x,
-                                    m_yCoordinate * BLOCKS_NUM_Y + scl*y,
-                                    m_zCoordinate * BLOCKS_NUM_Z - scl*z} );
+        float4x4 blockPositionTranslationMatrix;
         
         // Front of block
         nextBlock = world->getBlockAt(x, y, z-1);
         if ( nextBlock != nullptr && nextBlock->state != nullptr ) {
-            AAPL_PRINT("Add back to next");
+            blockPositionTranslationMatrix=
+                makeTranslate((float3) {m_xCoordinate * BLOCKS_NUM_X + scl*x,
+                                        m_yCoordinate * BLOCKS_NUM_Y + scl*y,
+                                        m_zCoordinate * BLOCKS_NUM_Z - scl*(z-1)} );
+            
             buffer[*count].transform = blockPositionTranslationMatrix * scale * moveFaceToBack();
             buffer[*count].normalTransform = Math3D::discardTranslation(buffer[*count].transform);
             buffer[*count].textureId = nextBlock->state->backTexture();
-            nextBlock->backInstanceIndex = *count;
+            buffer[*count].blockCoordinates = {x, y, z-1};
+            nextBlock->faceIndices[Faces::Back] = *count;
             
             ++(*count);
         } else {
-            AAPL_PRINT("Remove front from curr");
-            renderer->removeInstanceAt(currBlock->frontInstanceIndex);
-            currBlock->frontInstanceIndex = -1;
+            renderer->removeInstanceAt(currBlock->faceIndices[Faces::Front]);
+            currBlock->faceIndices[Faces::Front] = -1;
         }
         
         // Left of block
         nextBlock = world->getBlockAt(x-1, y, z);
         if ( nextBlock != nullptr && nextBlock->state != nullptr ) {
-            AAPL_PRINT("Add right to next");
+            blockPositionTranslationMatrix =
+                makeTranslate((float3) {m_xCoordinate * BLOCKS_NUM_X + scl*(x-1),
+                                        m_yCoordinate * BLOCKS_NUM_Y + scl*y,
+                                        m_zCoordinate * BLOCKS_NUM_Z - scl*z} );
+            
             buffer[*count].transform = blockPositionTranslationMatrix * scale * moveFaceToRight();
             buffer[*count].normalTransform = discardTranslation(buffer[*count].transform);
             buffer[*count].textureId = nextBlock->state->rightTexture();
-            nextBlock->rightInstanceIndex = *count;
+            buffer[*count].blockCoordinates = {x-1, y, z};
+            nextBlock->faceIndices[Faces::Right] = *count;
             
             ++(*count);
         } else {
-            AAPL_PRINT("Remove left from curr");
-            renderer->removeInstanceAt(currBlock->leftInstanceIndex);
-            currBlock->leftInstanceIndex = -1;
+            renderer->removeInstanceAt(currBlock->faceIndices[Faces::Left]);
+            currBlock->faceIndices[Faces::Left] = -1;
         }
        
         // Back of block
         nextBlock = world->getBlockAt(x, y, z+1);
         if ( nextBlock != nullptr && nextBlock->state != nullptr ) {
-            AAPL_PRINT("Add front to next");
+            blockPositionTranslationMatrix =
+                makeTranslate((float3) {m_xCoordinate * BLOCKS_NUM_X + scl*x,
+                                        m_yCoordinate * BLOCKS_NUM_Y + scl*y,
+                                        m_zCoordinate * BLOCKS_NUM_Z - scl*(z+1)} );
+            
             buffer[*count].transform = blockPositionTranslationMatrix * scale;
             buffer[*count].normalTransform = discardTranslation(buffer[*count].transform);
             buffer[*count].textureId = nextBlock->state->frontTexture();
-            nextBlock->frontInstanceIndex = *count;
+            buffer[*count].blockCoordinates = {x, y, z+1};
+            nextBlock->faceIndices[Faces::Front] = *count;
             
             ++(*count);
         } else {
-            AAPL_PRINT("Remove back from curr");
-            renderer->removeInstanceAt(currBlock->backInstanceIndex);
-            currBlock->backInstanceIndex = -1;
+            renderer->removeInstanceAt(currBlock->faceIndices[Faces::Back]);
+            currBlock->faceIndices[Faces::Back] = -1;
         }
         
         // Right of block
         nextBlock = world->getBlockAt(x+1, y, z);
         if ( nextBlock != nullptr && nextBlock->state != nullptr ) {
-            AAPL_PRINT("Add left to next");
+            blockPositionTranslationMatrix =
+                makeTranslate((float3) {m_xCoordinate * BLOCKS_NUM_X + scl*(x+1),
+                                        m_yCoordinate * BLOCKS_NUM_Y + scl*y,
+                                        m_zCoordinate * BLOCKS_NUM_Z - scl*z} );
+            
             buffer[*count].transform = blockPositionTranslationMatrix * scale * moveFaceToLeft();
             buffer[*count].normalTransform = discardTranslation(buffer[*count].transform);
             buffer[*count].textureId = nextBlock->state->leftTexture();
-            nextBlock->leftInstanceIndex = *count;
+            buffer[*count].blockCoordinates = {x+1, y, z};
+            nextBlock->faceIndices[Faces::Left] = *count;
             
             ++(*count);
         } else {
-            AAPL_PRINT("Remove right from curr");
-            renderer->removeInstanceAt(currBlock->rightInstanceIndex);
-            currBlock->rightInstanceIndex = -1;
+            renderer->removeInstanceAt(currBlock->faceIndices[Faces::Right]);
+            currBlock->faceIndices[Faces::Right] = -1;
         }
         
         // Top of block
         nextBlock = world->getBlockAt(x, y+1, z);
         if ( nextBlock != nullptr && nextBlock->state != nullptr ) {
-            AAPL_PRINT("Add bottom to next");
+            blockPositionTranslationMatrix =
+                makeTranslate((float3) {m_xCoordinate * BLOCKS_NUM_X + scl*x,
+                                        m_yCoordinate * BLOCKS_NUM_Y + scl*(y+1),
+                                        m_zCoordinate * BLOCKS_NUM_Z - scl*z} );
+            
             buffer[*count].transform = blockPositionTranslationMatrix * scale * moveFaceToBottom();
             buffer[*count].normalTransform = discardTranslation(buffer[*count].transform);
             buffer[*count].textureId = nextBlock->state->bottomTexture();
-            nextBlock->bottomInstanceIndex = *count;
+            buffer[*count].blockCoordinates = {x, y+1, z};
+            nextBlock->faceIndices[Faces::Bottom] = *count;
             
             ++(*count);
         } else {
-            AAPL_PRINT("Remove top from curr");
-            renderer->removeInstanceAt(currBlock->topInstanceIndex);
-            currBlock->topInstanceIndex = -1;
+            renderer->removeInstanceAt(currBlock->faceIndices[Faces::Top]);
+            currBlock->faceIndices[Faces::Top] = -1;
         }
         
         // Bottom of block
         nextBlock = world->getBlockAt(x, y-1, z);
         if ( nextBlock != nullptr && nextBlock->state != nullptr ) {
-            AAPL_PRINT("Add top to next");
+            blockPositionTranslationMatrix =
+                makeTranslate((float3) {m_xCoordinate * BLOCKS_NUM_X + scl*x,
+                                        m_yCoordinate * BLOCKS_NUM_Y + scl*(y-1),
+                                        m_zCoordinate * BLOCKS_NUM_Z - scl*z} );
+            
             buffer[*count].transform = blockPositionTranslationMatrix * scale * moveFaceToTop();
             buffer[*count].normalTransform = discardTranslation(buffer[*count].transform);
             buffer[*count].textureId = nextBlock->state->topTexture();
-            nextBlock->topInstanceIndex = *count;
+            buffer[*count].blockCoordinates = {x, y-1, z};
+            nextBlock->faceIndices[Faces::Top] = *count;
             
             ++(*count);
         } else {
-            AAPL_PRINT("Remove bottom from curr");
-            renderer->removeInstanceAt(currBlock->bottomInstanceIndex);
-            currBlock->bottomInstanceIndex = -1;
+            renderer->removeInstanceAt(currBlock->faceIndices[Faces::Bottom]);
+            currBlock->faceIndices[Faces::Bottom] = -1;
         }
     }
 };
