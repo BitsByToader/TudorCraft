@@ -39,38 +39,37 @@ public:
     
     long receiveFromSocket(void *buffer, int64_t length);
     
+#warning "Question: Pointer vs Reference?"
+    
+    template<class T>
+    const TCPStream &operator>>(T *value);
+    template<class T>
+    const TCPStream &operator<<(T *value);
+    
+    template<>
     const TCPStream &operator>>(MCP::Packet *packet);
+    template<>
     const TCPStream &operator<<(MCP::Packet *packet);
     
+    template<>
     const TCPStream &operator>>(MCP::VarInt *value);
+    template<>
     const TCPStream &operator<<(MCP::VarInt *value);
     
+    template<>
     const TCPStream &operator>>(MCP::Property *property);
+    template<>
     const TCPStream &operator<<(MCP::Property *property);
     
-    const TCPStream &operator>>(std::string &value);
-    const TCPStream &operator<<(std::string &value);
+    template<>
+    const TCPStream &operator>>(std::string *value);
+    template<>
+    const TCPStream &operator<<(std::string *value);
     
+    template<>
     const TCPStream &operator>>(MCP::Uuid *value);
-    const TCPStream &operator<<(MCP::Uuid value);
-    
-    const TCPStream &operator>>(int64_t *value);
-    const TCPStream &operator<<(int64_t value);
-    
-    const TCPStream &operator>>(int32_t *value);
-    const TCPStream &operator<<(int32_t value);
-    
-    const TCPStream &operator>>(int16_t *value);
-    const TCPStream &operator<<(int16_t value);
-    
-    const TCPStream &operator>>(int8_t *value);
-    const TCPStream &operator<<(int8_t value);
-    
-    const TCPStream &operator>>(double *value);
-    const TCPStream &operator<<(double value);
-    
-    const TCPStream &operator>>(float *value);
-    const TCPStream &operator<<(float value);
+    template<>
+    const TCPStream &operator<<(MCP::Uuid *value);
     
 private:
     MCP::ConnectionState *m_connectionState;

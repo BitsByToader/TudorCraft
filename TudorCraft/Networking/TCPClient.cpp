@@ -13,8 +13,8 @@ TCPClient::TCPClient(std::string serverAddress, int port) : m_server(&m_state, s
     MCP::HandshakePacket initialHandshake(760, serverAddress, port);
     MCP::LoginStartPacket loginStart(name);
     
-    m_server << &initialHandshake;
-    m_server << &loginStart;
+    m_server << reinterpret_cast<MCP::Packet *>(&initialHandshake);
+    m_server << reinterpret_cast<MCP::Packet *>(&loginStart);
     
     m_state = MCP::ConnectionState::Handshaking;
     

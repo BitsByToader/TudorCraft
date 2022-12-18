@@ -199,20 +199,21 @@ private:
 };
 
 //MARK: - Chunk Data Packet
-//class ChunkDataPacket: public Packet {
-//public:
-//    ~ChunkDataPacket() override = default;
-//
-//    void write(TCPStream *stream) override {};
-//    void read(TCPStream *stream) override;
-//
-//    int getPacketId() override {
-//        return (int) MCP::ClientBoundPlayingPacketTypes::ChunkData;
-//    }
-//
-//private:
-//
-//};
+class ChunkDataPacket: public Packet {
+public:
+    ~ChunkDataPacket() override = default;
+
+    void write(TCPStream *stream) override {};
+    void read(TCPStream *stream) override;
+
+    int getPacketId() override {
+        return (int) MCP::ClientBoundPlayingPacketTypes::ChunkData;
+    }
+
+private:
+    int m_chunkX;
+    int m_chunkZ;
+};
 
 }
 

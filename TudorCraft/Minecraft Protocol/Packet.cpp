@@ -32,8 +32,8 @@ void HandshakePacket::write(TCPStream *stream) {
     *stream << &packetId;
     
     *stream << &m_protocolVersion;
-    *stream << m_serverAddress;
-    *stream << m_port;
+    *stream << &m_serverAddress;
+    *stream << &m_port;
     *stream << &nextState;
     
     // Don't flush the buffer now because we need to quickly send LoginStart as well
@@ -52,12 +52,14 @@ void LoginStartPacket::write(TCPStream *stream) {
                      (int) m_username.size() +
                      2 );// The two false booleans
     
+    bool b = false;
+    
     *stream << &size;
     *stream << &packetId;
     
-    *stream << m_username;
-    *stream << false;
-    *stream << false;
+    *stream << &m_username;
+    *stream << &b;
+    *stream << &b;
     
     stream->flushOutput();
 };
@@ -67,7 +69,7 @@ void LoginSuccessPacket::read(TCPStream *stream) {
     MCP::VarInt propertiesCount;
     
     *stream >> &m_uuid;
-    *stream >> m_username;
+    *stream >> &m_username;
     *stream >> &propertiesCount;
     
     for ( int i = 0; i < propertiesCount.value(); i++ ) {
@@ -98,7 +100,7 @@ void PlayerInfoPacket::read(TCPStream *stream) {
                 
                 Player player;
                 
-                *stream >> player.name;
+                *stream >> &player.name;
                 
                 *stream >> &propertyCount;
                 for ( int j = 0; j < propertyCount.value(); j++ ) {
@@ -113,7 +115,7 @@ void PlayerInfoPacket::read(TCPStream *stream) {
                 *stream >> (int8_t *) &player.hasDisplayName;
                 
                 if ( player.hasDisplayName )
-                    *stream >> player.displayName;
+                    *stream >> &player.displayName;
                 
                 *stream >> (int8_t *) &player.hasSigData;
                 if ( player.hasSigData ) {
@@ -183,7 +185,7 @@ void PlayerInfoPacket::read(TCPStream *stream) {
                 NewDisplayName name;
                 *stream >> (int8_t *) &name.hasDisplayName;
                 if ( name.hasDisplayName )
-                    *stream >> name.displayName;
+                    *stream >> &name.displayName;
                 
                 m_names.push_back(name);
             }
@@ -210,7 +212,7 @@ void KeepAlivePacket::write(TCPStream *stream) {
     
     *stream << &packetSize;
     *stream << &packetId;
-    *stream << m_id;
+    *stream << &m_id;
     
     stream->flushOutput();
 };
@@ -237,4 +239,13 @@ void SynchronizePlayerPositionPacket::read(TCPStream *stream) {
 void CenterChunkPacket::read(TCPStream *stream) {
     *stream >> &m_chunkX;
     *stream >> &m_chunkZ;
+};
+
+//MARK: - Chunk Data Packet
+void ChunkDataPacket::read(TCPStream *stream) {
+    *stream >> &m_chunkX;
+    *stream >> &m_chunkZ;
+    
+    
+    
 };

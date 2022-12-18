@@ -8,8 +8,19 @@
 #include "TCPStream.hpp"
 
 //TODO: Create utlity methods to check for overflow
-//TODO: VarInts are currently being read from the network byte by byte, which is inherrently slow(er),
-//      so test how slow this is and optionally read the whole 5 bytes, and if there isn't a need for that         many, put them in m_recvBuffer and take them from there for the next read.
+
+/*
+ Explicit instantiation for templated operator.
+ 
+ Not doing this results in a linker error because the linker doesn't know
+ what functions to create from the template when it compiles TCPStream.o.
+ As such, when it gets to compiling Packet.o (for example) it won't find
+ some operators like the ones below.
+ */
+template const TCPStream &TCPStream::operator<<(short *value);
+template const TCPStream &TCPStream::operator>>(double *value);
+template const TCPStream &TCPStream::operator>>(float *value);
+template const TCPStream &TCPStream::operator>>(int *value);
 
 TCPStream::TCPStream(MCP::ConnectionState *state, std::string serverAddress, int port) {
     m_connectionState = state;
@@ -68,6 +79,29 @@ long TCPStream::receiveFromSocket(void *buffer, int64_t length) {
     return bytesRead;
 };
 
+//MARK: - Primitives template
+template<class T>
+const TCPStream &TCPStream::operator>>(T *value) {
+    unsigned char *toReceive = reinterpret_cast<unsigned char *>(value);
+    receiveFromSocket(toReceive, sizeof(T));
+    std::reverse(toReceive, toReceive+sizeof(T));
+    
+    return *this;
+};
+
+template<class T>
+const TCPStream &TCPStream::operator<<(T *value) {
+    unsigned char *toSend = reinterpret_cast<unsigned char *>(value);
+    std::reverse(toSend, toSend+sizeof(T));
+    
+    memcpy(m_sendBuffer+m_sendBufferCurrentOffset, toSend, sizeof(T));
+    m_sendBufferCurrentOffset += sizeof(T);
+    
+    return *this;
+};
+
+//MARK: - MCP::Packet template specialization
+template<>
 const TCPStream &TCPStream::operator>>(MCP::Packet *packet) {
     MCP::VarInt packetLength;
     MCP::VarInt packetId;
@@ -157,34 +191,40 @@ const TCPStream &TCPStream::operator>>(MCP::Packet *packet) {
     return *this;
 };
 
+template<>
 const TCPStream &TCPStream::operator<<(MCP::Packet *packet) {
     packet->write(this);
     
     return *this;
 };
 
+//MARK: - MCP::Property template specialization
+template<>
 const TCPStream &TCPStream::operator>>(MCP::Property *property) {
-    *this >> property->name;
-    *this >> property->value;
+    *this >> &property->name;
+    *this >> &property->value;
     *this >> (int8_t*) &property->isSigned;
     if ( property->isSigned ) {
-        *this >> property->signature;
+        *this >> &property->signature;
     }
     
     return *this;
 };
 
+template<>
 const TCPStream &TCPStream::operator<<(MCP::Property *property) {
-    *this << property->name;
-    *this << property->value;
-    *this << property->isSigned;
+    *this << &property->name;
+    *this << &property->value;
+    *this << &property->isSigned;
     if ( property->isSigned ) {
-        *this << property->signature;
+        *this << &property->signature;
     }
     
     return *this;
 };
 
+//MARK: - MCP::VarInt template specialization
+template<>
 const TCPStream &TCPStream::operator>>(MCP::VarInt *value) {
     int position = 0;
     int readValue = 0;
@@ -212,7 +252,8 @@ const TCPStream &TCPStream::operator>>(MCP::VarInt *value) {
     
     return *this;
 };
-#warning "Question: Pointer vs Reference?"
+
+template<>
 const TCPStream &TCPStream::operator<<(MCP::VarInt *value) {
     memcpy(m_sendBuffer + m_sendBufferCurrentOffset, value->buffer(), value->size());
     m_sendBufferCurrentOffset += value->size();
@@ -220,7 +261,9 @@ const TCPStream &TCPStream::operator<<(MCP::VarInt *value) {
     return *this;
 };
 
-const TCPStream &TCPStream::operator>>(std::string &value) {
+//MARK: - string template specialization
+template<>
+const TCPStream &TCPStream::operator>>(std::string *value) {
     MCP::VarInt length;
     *this >> &length;
     
@@ -228,22 +271,25 @@ const TCPStream &TCPStream::operator>>(std::string &value) {
     receiveFromSocket(m_recvBuffer, length.value());
     // Is the string deallocator called here for the previous value???
 #warning "THIS NEEDS A REWRITE PRONTO"
-    value = std::string((char *)m_recvBuffer, length.value());
+    *value = std::string((char *)m_recvBuffer, length.value());
     flushInput();
     
     return *this;
 };
 
-const TCPStream &TCPStream::operator<<(std::string &value) {
-    MCP::VarInt strLength((int)value.size());
+template<>
+const TCPStream &TCPStream::operator<<(std::string *value) {
+    MCP::VarInt strLength((int)value->size());
     *this << &strLength;
     
-    memcpy(m_sendBuffer + m_sendBufferCurrentOffset, value.data(), value.size());
-    m_sendBufferCurrentOffset += value.size();
+    memcpy(m_sendBuffer + m_sendBufferCurrentOffset, value->data(), value->size());
+    m_sendBufferCurrentOffset += value->size();
     
     return *this;
 };
 
+//MARK: - MCP::Uuid template specialization
+template<>
 const TCPStream &TCPStream::operator>>(MCP::Uuid *value) {
     *this >> &(value->mostSignificant);
     *this >> &(value->leastSignificat);
@@ -251,118 +297,10 @@ const TCPStream &TCPStream::operator>>(MCP::Uuid *value) {
     return *this;
 };
 
-const TCPStream &TCPStream::operator<<(MCP::Uuid value) {
-    *this << value.mostSignificant;
-    *this << value.leastSignificat;
-    
-    return *this;
-};
-
-const TCPStream &TCPStream::operator>>(int64_t *value) {
-    unsigned char *toReceive = reinterpret_cast<unsigned char *>(value);
-    receiveFromSocket(toReceive, sizeof(int64_t));
-    std::reverse(toReceive, toReceive+sizeof(int64_t));
-    
-    return *this;
-};
-
-const TCPStream &TCPStream::operator<<(int64_t value) {
-    // Network order is big-endian, which happens to coincide with the Minecraft Protocol.
-    unsigned char *toSend = reinterpret_cast<unsigned char *>(&value);
-    std::reverse(toSend, toSend+sizeof(int64_t));
-    
-    memcpy(m_sendBuffer+m_sendBufferCurrentOffset, toSend, sizeof(int64_t));
-    m_sendBufferCurrentOffset += sizeof(int64_t);
-    
-    return *this;
-};
-
-const TCPStream &TCPStream::operator>>(int32_t *value) {
-    unsigned char *toReceive = reinterpret_cast<unsigned char *>(value);
-    receiveFromSocket(toReceive, sizeof(int32_t));
-    
-    std::reverse(toReceive, toReceive+sizeof(int32_t));
-    
-    return *this;
-};
-
-const TCPStream &TCPStream::operator<<(int32_t value) {
-    // Network order is big-endian, which happens to coincide with the Minecraft Protocol.
-    unsigned char *toSend = reinterpret_cast<unsigned char *>(&value);
-    std::reverse(toSend, toSend+sizeof(int32_t));
-    
-    memcpy(m_sendBuffer+m_sendBufferCurrentOffset, toSend, sizeof(int32_t));
-    m_sendBufferCurrentOffset += sizeof(int32_t);
-    
-    return *this;
-};
-
-const TCPStream &TCPStream::operator>>(int16_t *value) {
-    unsigned char *toReceive = reinterpret_cast<unsigned char *>(value);
-    receiveFromSocket(toReceive, sizeof(int16_t));
-    
-    std::reverse(toReceive, toReceive+sizeof(int16_t));
-    
-    return  *this;
-};
-
-const TCPStream &TCPStream::operator<<(int16_t value) {
-    unsigned char *toSend = reinterpret_cast<unsigned char *>(&value);
-    std::reverse(toSend, toSend+sizeof(int16_t));
-    
-    memcpy(m_sendBuffer+m_sendBufferCurrentOffset, toSend, sizeof(int16_t));
-    m_sendBufferCurrentOffset += sizeof(int16_t);
-    
-    return *this;
-};
-
-const TCPStream &TCPStream::operator>>(int8_t *value) {
-    receiveFromSocket(value, 1);
-    
-    return *this;
-};
-
-const TCPStream &TCPStream::operator<<(int8_t value) {
-    m_sendBuffer[m_sendBufferCurrentOffset] = (char) value;
-    ++m_sendBufferCurrentOffset;
-    
-    return *this;
-};
-
-const TCPStream &TCPStream::operator>>(double *value) {
-    unsigned char *toReceive = reinterpret_cast<unsigned char *>(value);
-    receiveFromSocket(toReceive, sizeof(double));
-    
-    std::reverse(toReceive, toReceive+sizeof(double));
-    
-    return  *this;
-};
-
-const TCPStream &TCPStream::operator<<(double value) {
-    unsigned char *toSend = reinterpret_cast<unsigned char *>(&value);
-    std::reverse(toSend, toSend+sizeof(double));
-    
-    memcpy(m_sendBuffer+m_sendBufferCurrentOffset, toSend, sizeof(double));
-    m_sendBufferCurrentOffset += sizeof(double);
-    
-    return *this;
-};
-
-const TCPStream &TCPStream::operator>>(float *value) {
-    unsigned char *toReceive = reinterpret_cast<unsigned char *>(value);
-    receiveFromSocket(toReceive, sizeof(float));
-    
-    std::reverse(toReceive, toReceive+sizeof(float));
-    
-    return  *this;
-};
-
-const TCPStream &TCPStream::operator<<(float value) {
-    unsigned char *toSend = reinterpret_cast<unsigned char *>(&value);
-    std::reverse(toSend, toSend+sizeof(float));
-    
-    memcpy(m_sendBuffer+m_sendBufferCurrentOffset, toSend, sizeof(float));
-    m_sendBufferCurrentOffset += sizeof(float);
+template<>
+const TCPStream &TCPStream::operator<<(MCP::Uuid *value) {
+    *this << &value->mostSignificant;
+    *this << &value->leastSignificat;
     
     return *this;
 };

@@ -23,6 +23,7 @@ Licensed under zlib, see repo License file for details
 #define NBT_MAP_TYPE boost::container::map
 #endif
 
+#include <map>
 #include <bit>
 #include <concepts>
 #include <cstdint>

@@ -27,6 +27,7 @@
 		8B672AE729281C4B00E111B1 /* BlockState.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8B672AE529281C4B00E111B1 /* BlockState.cpp */; };
 		8B672AEA29281C5E00E111B1 /* Chunk.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8B672AE829281C5E00E111B1 /* Chunk.cpp */; };
 		8B672AED29281C7200E111B1 /* World.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8B672AEB29281C7200E111B1 /* World.cpp */; };
+		8B753E07294F03C40034507F /* Nbt.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8B753E05294F03C40034507F /* Nbt.cpp */; };
 		8B9B8322291528F400FB1030 /* GameViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = 8B9B8321291528F400FB1030 /* GameViewController.mm */; };
 		8B9B832E2915951E00FB1030 /* Shaders.metal in Sources */ = {isa = PBXBuildFile; fileRef = 8B9B832D2915951E00FB1030 /* Shaders.metal */; };
 		8BC709C52938FD010031B28A /* TCPClient.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8BC709C32938FD010031B28A /* TCPClient.cpp */; };
@@ -67,6 +68,8 @@
 		8B672AE929281C5E00E111B1 /* Chunk.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = Chunk.hpp; sourceTree = "<group>"; };
 		8B672AEB29281C7200E111B1 /* World.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = World.cpp; sourceTree = "<group>"; };
 		8B672AEC29281C7200E111B1 /* World.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = World.hpp; sourceTree = "<group>"; };
+		8B753E05294F03C40034507F /* Nbt.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Nbt.cpp; sourceTree = "<group>"; };
+		8B753E06294F03C40034507F /* Nbt.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = Nbt.hpp; sourceTree = "<group>"; };
 		8B9B8321291528F400FB1030 /* GameViewController.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = GameViewController.mm; sourceTree = "<group>"; };
 		8B9B83232915290F00FB1030 /* GameViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = GameViewController.h; sourceTree = "<group>"; };
 		8B9B832B29158E7300FB1030 /* AAPLUtilities.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AAPLUtilities.h; sourceTree = "<group>"; };
@@ -103,6 +106,8 @@
 				8BC709C729391CAB0031B28A /* VarInt.hpp */,
 				8B21827A293BE40C00F7AEFE /* Uuid.cpp */,
 				8B21827B293BE40C00F7AEFE /* Uuid.hpp */,
+				8B753E05294F03C40034507F /* Nbt.cpp */,
+				8B753E06294F03C40034507F /* Nbt.hpp */,
 			);
 			path = "Minecraft Protocol";
 			sourceTree = "<group>";
@@ -133,6 +138,7 @@
 				8B366B71291FE8CB00BC5427 /* Renderer */,
 				8B366B70291FE87300BC5427 /* Textures */,
 				8B672AE429281C0500E111B1 /* Engine */,
+				8B0479F6293A7D6800284659 /* Minecraft Protocol */,
 				8BC709C22938FCAC0031B28A /* Networking */,
 				8B1FF3B129130D5700A9C095 /* Assets.xcassets */,
 				8B1FF3B329130D5700A9C095 /* TudorCraft.entitlements */,
@@ -228,7 +234,6 @@
 		8BC709C22938FCAC0031B28A /* Networking */ = {
 			isa = PBXGroup;
 			children = (
-				8B0479F6293A7D6800284659 /* Minecraft Protocol */,
 				8BC709C32938FD010031B28A /* TCPClient.cpp */,
 				8BC709C42938FD010031B28A /* TCPClient.hpp */,
 				8B0479F7293A7D9A00284659 /* TCPStream.cpp */,
@@ -312,6 +317,7 @@
 			files = (
 				8B672AE729281C4B00E111B1 /* BlockState.cpp in Sources */,
 				8B21827C293BE40C00F7AEFE /* Uuid.cpp in Sources */,
+				8B753E07294F03C40034507F /* Nbt.cpp in Sources */,
 				8B672AEA29281C5E00E111B1 /* Chunk.cpp in Sources */,
 				8B9B832E2915951E00FB1030 /* Shaders.metal in Sources */,
 				8B0479FC293A821000284659 /* Packet.cpp in Sources */,

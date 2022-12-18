@@ -11,6 +11,7 @@
 #include <cstdint>
 
 namespace MCP {
+
 class Uuid {
 public:
     Uuid() {
@@ -21,6 +22,7 @@ public:
     int64_t mostSignificant;
     int64_t leastSignificat;
 };
+
 }
 
 #endif /* Uuid_hpp */

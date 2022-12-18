@@ -21,7 +21,8 @@
 #define BLOCKS_NUM_TOTAL 16*16*16
 
 
-
+//MARK: Faces enum
+/// Maps each face of the block to an index in the `faceIndices` array of the `Block` struct.
 enum Faces: unsigned char {
     Front   = 0,
     Left    = 1,
@@ -31,6 +32,7 @@ enum Faces: unsigned char {
     Top     = 5
 };
 
+//MARK: - Block struct
 #warning Question: Class or struct here?
 ///  Basic struct which holds the state and the indices for the instance data.
 struct Block {
@@ -41,7 +43,7 @@ struct Block {
     int faceIndices[6];
 };
 
-#warning Question:Any ideas to save space?
+//MARK: - Chunk class
 /// Smallest form of storage for a MC world, holding blocks in a contiguous manner.
 class Chunk {
 public:
@@ -67,15 +69,33 @@ public:
     /// Otherwise, use the `placeBlockAt` method to properly modify the mesh in place in the buffer.
     ///
     /// - Parameters:
-    ///     - renderer: Where the mesh should be generated. Default value is the global `Renderer` singleton
+    ///   - renderer: Where the mesh should be generated. Default value is the global `Renderer` singleton.
     void calculateMesh(Renderer *renderer = Renderer::shared());
     
+    
+    /// Places a block with the `state` in the `world` updating the rendering instances for `renderer`.
+    ///
+    /// - Warning: The `renderer` and `world` arguments **have** to be the same for every call,
+    /// using other worlds and renderers is undefined behaviour!
+    ///
+    /// - Parameters:
+    ///   - x: X relative coordinate in the chunk
+    ///   - y: Y relative coordinate in the chunk
+    ///   - z: Z relative coordinate in the chunk
+    ///   - state: The state of the new block, `nullptr` for an air block.
+    ///   - renderer: The renderer which gets updated with the new instances
+    ///   - world: The world where we're placing the block in, the same world that contains this chunk.
     void placeBlockAt(int x, int y, int z,
                       BlockState *state,
                       Renderer *renderer = Renderer::shared(),
                       World *world = World::shared());
     
-    void setBlockAt(int x, int y, int z, BlockState *state);
+    /// Similar in concept to `placeBlockAt()`, but this method only updates the state in the chunk.
+    ///
+    /// As such, the change will not be reflected in world or in the rendering in any way. After a series of `setBlockAt` it's expected
+    /// to call `calculateMesh()` to modify
+    void setBlockAt(int x, int y, int z,
+                    BlockState *state);
     
 private:
     // These are chunk coordinates, not the block coordinate of the first block!
