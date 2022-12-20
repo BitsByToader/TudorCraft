@@ -19,16 +19,18 @@
 #include <arpa/inet.h>
 #include <netinet/in.h>
 
+#include "Streamable.hpp"
 #include "AAPLUtilities.h"
 #include "PacketTypes.hpp"
 #include "Packet.hpp"
 #include "VarInt.hpp"
 #include "Uuid.hpp"
+#include "Nbt.hpp"
 
 #define SEND_BUFFER_SIZE 1024
 #define RECV_BUFFER_SIZE 2097152
 
-class TCPStream {
+class TCPStream: public Streamable {
 public:
     TCPStream() {};
     TCPStream(MCP::ConnectionState *state, std::string serverAddress, int port);
@@ -37,10 +39,12 @@ public:
     void flushOutput();
     void flushInput();
     
-    long receiveFromSocket(void *buffer, int64_t length);
+    //MARK: - Streamable interface
+    size_t readBytes(uint8_t *buffer, size_t length) override;
+    size_t writeBytes(uint8_t *buffer, size_t length) override;
     
 #warning "Question: Pointer vs Reference?"
-    
+    //MARK: - << and >> Operators
     template<class T>
     const TCPStream &operator>>(T *value);
     template<class T>
@@ -71,7 +75,13 @@ public:
     template<>
     const TCPStream &operator<<(MCP::Uuid *value);
     
+    template<>
+    const TCPStream &operator>>(MCP::NBT::Tag *value);
+    template<>
+    const TCPStream &operator<<(MCP::NBT::Tag *value);
+    
 private:
+    //MARK: - Members
     MCP::ConnectionState *m_connectionState;
     int m_socketDescriptor;
     

@@ -70,6 +70,7 @@
 		8B672AEC29281C7200E111B1 /* World.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = World.hpp; sourceTree = "<group>"; };
 		8B753E05294F03C40034507F /* Nbt.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Nbt.cpp; sourceTree = "<group>"; };
 		8B753E06294F03C40034507F /* Nbt.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = Nbt.hpp; sourceTree = "<group>"; };
+		8B8AAA182950657400C68CAC /* Streamable.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = Streamable.hpp; sourceTree = "<group>"; };
 		8B9B8321291528F400FB1030 /* GameViewController.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = GameViewController.mm; sourceTree = "<group>"; };
 		8B9B83232915290F00FB1030 /* GameViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = GameViewController.h; sourceTree = "<group>"; };
 		8B9B832B29158E7300FB1030 /* AAPLUtilities.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AAPLUtilities.h; sourceTree = "<group>"; };
@@ -206,6 +207,7 @@
 				8B9B832B29158E7300FB1030 /* AAPLUtilities.h */,
 				8B2B7A8F2917C51800916671 /* Math3D.hpp */,
 				8B2B7A8E2917C51800916671 /* Math3D.cpp */,
+				8B8AAA182950657400C68CAC /* Streamable.hpp */,
 			);
 			path = Utilities;
 			sourceTree = "<group>";

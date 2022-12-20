@@ -246,6 +246,55 @@ void ChunkDataPacket::read(TCPStream *stream) {
     *stream >> &m_chunkX;
     *stream >> &m_chunkZ;
     
+    *stream >> &m_heightmap;
+    *stream >> &m_dataSize;
     
-    
+    for ( int chunkY = 0; chunkY < 384/16; chunkY++ ) {
+        ChunkSection section;
+        
+        *stream >> &section.blockCount;
+        
+        // BlockStates Pallete
+        *stream >> &section.blockStates.bitsPerEntry;
+        *stream >> &section.blockStates.palleteLength;
+        
+        section.blockStates.pallete.reserve(section.blockStates.palleteLength.value());
+        for ( int i = 0; i < section.blockStates.palleteLength.value(); i++ ) {
+            VarInt v;
+            *stream >> &v;
+            section.blockStates.pallete.push_back(v);
+        }
+        
+        *stream >> &section.blockStates.dataArrayLength;
+        section.blockStates.dataArray.reserve(section.blockStates.dataArrayLength.value());
+        for ( int i = 0; i < section.blockStates.dataArrayLength.value(); i++ ) {
+            int64_t l;
+            *stream >> &l;
+            section.blockStates.dataArray.push_back(l);
+        }
+        // BlockStates Pallete
+        
+        // Biomes Pallete
+        *stream >> &section.biomes.bitsPerEntry;
+        *stream >> &section.biomes.palleteLength;
+        
+        section.biomes.pallete.reserve(section.biomes.palleteLength.value());
+        for ( int i = 0; i < section.biomes.palleteLength.value(); i++ ) {
+            VarInt v;
+            *stream >> &v;
+            section.biomes.pallete.push_back(v);
+        }
+        
+        *stream >> &section.biomes.dataArrayLength;
+        section.biomes.dataArray.reserve(section.biomes.dataArrayLength.value());
+        for ( int i = 0; i < section.biomes.dataArrayLength.value(); i++ ) {
+            int64_t l;
+            *stream >> &l;
+            section.biomes.dataArray.push_back(l);
+        }
+        // Biomes Pallete
+        
+        
+        m_data.push_back(section);
+    };
 };

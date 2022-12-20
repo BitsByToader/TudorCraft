@@ -18,9 +18,11 @@
  some operators like the ones below.
  */
 template const TCPStream &TCPStream::operator<<(short *value);
+template const TCPStream &TCPStream::operator>>(short *value);
 template const TCPStream &TCPStream::operator>>(double *value);
 template const TCPStream &TCPStream::operator>>(float *value);
 template const TCPStream &TCPStream::operator>>(int *value);
+template const TCPStream &TCPStream::operator>>(uint8_t *value);
 
 TCPStream::TCPStream(MCP::ConnectionState *state, std::string serverAddress, int port) {
     m_connectionState = state;
@@ -68,7 +70,7 @@ void TCPStream::flushInput() {
     m_recvBufferCurrentOffset = 0;
 };
 
-long TCPStream::receiveFromSocket(void *buffer, int64_t length) {
+size_t TCPStream::readBytes(uint8_t *buffer, size_t length) {
     long bytesRead = recv(m_socketDescriptor, buffer, length, 0);
     
     if ( bytesRead == 0 || bytesRead == -1 ) {
@@ -79,11 +81,21 @@ long TCPStream::receiveFromSocket(void *buffer, int64_t length) {
     return bytesRead;
 };
 
+#warning Refactor this to return the actual amount of sent bytes.
+size_t TCPStream::writeBytes(uint8_t *buffer, size_t length) {
+    memcpy(m_sendBuffer+m_sendBufferCurrentOffset, buffer, length);
+    m_sendBufferCurrentOffset += length;
+    
+    flushOutput();
+    
+    return length;
+};
+
 //MARK: - Primitives template
 template<class T>
 const TCPStream &TCPStream::operator>>(T *value) {
     unsigned char *toReceive = reinterpret_cast<unsigned char *>(value);
-    receiveFromSocket(toReceive, sizeof(T));
+    readBytes(toReceive, sizeof(T));
     std::reverse(toReceive, toReceive+sizeof(T));
     
     return *this;
@@ -165,6 +177,16 @@ const TCPStream &TCPStream::operator>>(MCP::Packet *packet) {
                 break;
             }
                 
+            case (int) MCP::ClientBoundPlayingPacketTypes::ChunkData: {
+                std::cout << "ChunkData packet" << std::endl;
+                
+                MCP::ChunkDataPacket *chunkDataPacket = new MCP::ChunkDataPacket;
+                chunkDataPacket->read(this);
+                packet = chunkDataPacket;
+                
+                break;
+            }
+                
             default: {
                 int64_t lengthToSkip = packetLength.value() - packetId.size();
                 // We don't support this packet yet, so skip the length of the buffer
@@ -172,7 +194,7 @@ const TCPStream &TCPStream::operator>>(MCP::Packet *packet) {
                 while ( lengthToSkip > 0 ) {
                     int64_t biggestSizePossible = (lengthToSkip - RECV_BUFFER_SIZE > 0) ? RECV_BUFFER_SIZE : lengthToSkip;
                     
-                    int64_t bytesRead = receiveFromSocket(m_recvBuffer, biggestSizePossible);
+                    int64_t bytesRead = readBytes(m_recvBuffer, biggestSizePossible);
                     
                     lengthToSkip -= bytesRead;
                     
@@ -231,7 +253,7 @@ const TCPStream &TCPStream::operator>>(MCP::VarInt *value) {
     unsigned char currentByte = 0;
     
     while ( true ) {
-        receiveFromSocket(&currentByte, 1); // Read current byte
+        readBytes(&currentByte, 1); // Read current byte
         readValue |= ( currentByte & SEGMENT_BITS ) << position*7;
         
         if ( (currentByte & CONTINUE_BIT) == 0 ) {
@@ -268,7 +290,7 @@ const TCPStream &TCPStream::operator>>(std::string *value) {
     *this >> &length;
     
 
-    receiveFromSocket(m_recvBuffer, length.value());
+    readBytes(m_recvBuffer, length.value());
     // Is the string deallocator called here for the previous value???
 #warning "THIS NEEDS A REWRITE PRONTO"
     *value = std::string((char *)m_recvBuffer, length.value());
@@ -301,6 +323,21 @@ template<>
 const TCPStream &TCPStream::operator<<(MCP::Uuid *value) {
     *this << &value->mostSignificant;
     *this << &value->leastSignificat;
+    
+    return *this;
+};
+
+//MARK: - MCP::NBT::Tag template specialization
+template<>
+const TCPStream &TCPStream::operator>>(MCP::NBT::Tag *value) {
+    value->decodeFrom(this);
+    
+    return *this;
+};
+
+template<>
+const TCPStream &TCPStream::operator<<(MCP::NBT::Tag *value) {
+    value->encodeTo(this);
     
     return *this;
 };

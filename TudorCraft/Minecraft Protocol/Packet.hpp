@@ -16,6 +16,7 @@
 #include "PacketTypes.hpp"
 #include "VarInt.hpp"
 #include "Uuid.hpp"
+#include "Nbt.hpp"
 
 class TCPStream;
 
@@ -209,10 +210,27 @@ public:
     int getPacketId() override {
         return (int) MCP::ClientBoundPlayingPacketTypes::ChunkData;
     }
+    
+    struct ChunkSection {
+        struct PalletedContainer {
+            uint8_t bitsPerEntry;
+            VarInt palleteLength; // or value if bitsPerEntry = 0
+            std::vector<VarInt> pallete;
+            VarInt dataArrayLength;
+            std::vector<int64_t> dataArray;
+        };
+        
+        int16_t blockCount;
+        PalletedContainer blockStates;
+        PalletedContainer biomes;
+    };
 
 private:
     int m_chunkX;
     int m_chunkZ;
+    NBT::Tag m_heightmap;
+    VarInt m_dataSize;
+    std::vector<ChunkSection> m_data;
 };
 
 }

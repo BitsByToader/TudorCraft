@@ -58,8 +58,8 @@
     m_view.colorPixelFormat = MTLPixelFormat::MTLPixelFormatBGRA8Unorm_sRGB;
     
     m_view.device = MTLCreateSystemDefaultDevice();
-    m_world = World::shared();
     m_renderer = Renderer::shared();
+    m_world = World::shared();
     
     // Configure the view to use the default device
     m_view.delegate = self;
