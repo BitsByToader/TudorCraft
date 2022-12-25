@@ -7,6 +7,9 @@
 
 #include "TCPStream.hpp"
 
+#include "World.hpp"
+#include "Chunk.hpp"
+
 //TODO: Create utlity methods to check for overflow
 
 /*
@@ -70,6 +73,16 @@ void TCPStream::flushInput() {
     m_recvBufferCurrentOffset = 0;
 };
 
+void TCPStream::skipRestOfPacket() {
+    int64_t lengthToSkip = m_currentPacketLength - m_currentPacketBytesRead;
+    
+    readBytes(m_recvBuffer, lengthToSkip);
+    
+    AAPL_PRINT("Skipped", lengthToSkip, "bytes");
+    
+    flushInput();
+};
+
 size_t TCPStream::readBytes(uint8_t *buffer, size_t length) {
     long bytesRead = recv(m_socketDescriptor, buffer, length, 0);
     
@@ -77,6 +90,8 @@ size_t TCPStream::readBytes(uint8_t *buffer, size_t length) {
         *m_connectionState = MCP::ConnectionState::Unconnected;
         return -1;
     }
+    
+    m_currentPacketBytesRead += bytesRead;
     
     return bytesRead;
 };
@@ -119,6 +134,10 @@ const TCPStream &TCPStream::operator>>(MCP::Packet *packet) {
     MCP::VarInt packetId;
     
     *this >> &packetLength;
+    
+    m_currentPacketLength = packetLength.value();
+    m_currentPacketBytesRead = 0;
+    
     *this >> &packetId;
     
     printf("Received packed with id: 0x%x\n", packetId.value());
@@ -183,6 +202,8 @@ const TCPStream &TCPStream::operator>>(MCP::Packet *packet) {
                 MCP::ChunkDataPacket *chunkDataPacket = new MCP::ChunkDataPacket;
                 chunkDataPacket->read(this);
                 packet = chunkDataPacket;
+                
+                chunkDataPacket->updateGame();
                 
                 break;
             }

@@ -11,21 +11,6 @@
 #include "Chunk.hpp"
 
 World::World() {
-    Chunk *chunk = new Chunk(0, 0, 0);
-    
-    for ( int i = 0; i < 16; i++ ) {
-        for ( int j = 0; j < 16; j++ ) {
-            for ( int k = 0; k < 16; k++ ) {
-                chunk->setBlockAt(i, j, k, BlockState::GrassBlock());
-            }
-        }
-    }
-    
-    Renderer::shared()->m_gpuMutex.lock();
-    chunk->calculateMesh();
-    Renderer::shared()->m_gpuMutex.unlock();
-    
-    m_chunks[{0,0,0}] = chunk;
 };
 
 World::~World() {
@@ -46,16 +31,20 @@ World *World::shared() {
     return m_globalObject;
 }
 
-#warning Use the actual chunk sizes instead of 16
+#warning Find a faster way to calculate these correctly
+#define DIVF(x, y) ( floor((float)x / float(y)) )
+#define REM(x, y) ( x - DIVF(x,y)*y )
+
 Chunk* World::getChunkAt(int x, int y, int z) {
-    Tuple3D chunkCoords = { x/16, y/16, z/16 };
+    Tuple3D chunkCoords = { DIVF(x, 16), DIVF(y, 16), DIVF(z, 16) };
     return m_chunks[chunkCoords];
 };
 
 Block *World::getBlockAt(int x, int y, int z) {
     Chunk *c = getChunkAt(x, y, z);
+    
     if ( c != nullptr ) {
-        return c->getBlockAt(x%16, y%16, z%16);
+        return c->getBlockAt(REM(x, 16), REM(y, 16), REM(z, 16));
     } else {
         return nullptr;
     }
@@ -64,9 +53,28 @@ Block *World::getBlockAt(int x, int y, int z) {
 void World::placeBlockAt(int x, int y, int z, BlockState *state) {
     Chunk *c = getChunkAt(x, y, z);
     if ( c != nullptr ) {
-        c->placeBlockAt(x%16, y%16, z%16, state);
+        c->placeBlockAt(REM(x, 16), REM(y, 16), REM(z, 16), state);
     }
 }
+
+void World::loadChunk(Chunk *c) {
+    m_chunks[{c->x(), c->y(), c->z()}] = c;
+    
+//    Renderer::shared()->m_gpuMutex.lock();
+//    c->calculateMesh();
+//    Renderer::shared()->m_gpuMutex.unlock();;
+}
+
+void World::calculateMeshes() {
+    Renderer::shared()->m_gpuMutex.lock();
+    for ( auto it: m_chunks ) {
+        if ( it.second != nullptr ) {
+            it.second->calculateMesh();
+        }
+    }
+    Renderer::shared()->m_gpuMutex.unlock();
+}
+
 
 
 

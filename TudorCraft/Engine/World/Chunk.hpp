@@ -97,6 +97,18 @@ public:
     void setBlockAt(int x, int y, int z,
                     BlockState *state);
     
+    int x() {
+        return m_xCoordinate;
+    };
+    
+    int y() {
+        return m_yCoordinate;
+    };
+    
+    int z() {
+        return m_zCoordinate;
+    };
+    
 private:
     // These are chunk coordinates, not the block coordinate of the first block!
     int m_xCoordinate;

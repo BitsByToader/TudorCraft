@@ -51,7 +51,10 @@ void Chunk::calculateMesh(Renderer *renderer) {
     InstanceData *buffer = renderer->instanceBuffer();
 
     const float4x4 scale = makeScale( (float3){ scl, scl, scl } );
-
+    
+    World *w = World::shared();
+    Block *nextBlock;
+    
     for ( int k = 0; k < BLOCKS_NUM_Y; k++ ) {
         for ( int j = 0; j < BLOCKS_NUM_Z; j++ ) {
             for ( int i = 0; i < BLOCKS_NUM_X; i++ ) {
@@ -61,13 +64,16 @@ void Chunk::calculateMesh(Renderer *renderer) {
                 if ( currBlock->state != nullptr ) {
                     m_blockCount++;
                     
+                    int x = m_xCoordinate * BLOCKS_NUM_X + i;
+                    int y = m_yCoordinate * BLOCKS_NUM_Y + k;
+                    int z = m_zCoordinate * BLOCKS_NUM_Z - j;
+                    
                     // Create the main block position
                     float4x4 blockPositionTranslationMatrix =
-                        makeTranslate((float3) {m_xCoordinate * BLOCKS_NUM_X + scl*i,
-                                                m_yCoordinate * BLOCKS_NUM_Y + scl*k,
-                                                m_zCoordinate * BLOCKS_NUM_Z - scl*j} );
+                        makeTranslate((float3) { x*scl, y*scl, -z*scl} );
 
-                    if ( j == 0 || getBlockAt(i, k, j-1)->state == nullptr ) {
+                    nextBlock = w->getBlockAt(x, y, z-1);
+                    if ( nextBlock == nullptr || nextBlock->state == nullptr ) {
                         // Front of block
                         buffer[*instanceCount].transform = blockPositionTranslationMatrix * scale;
                         buffer[*instanceCount].normalTransform = Math3D::discardTranslation(buffer[*instanceCount].transform);
@@ -76,8 +82,9 @@ void Chunk::calculateMesh(Renderer *renderer) {
                         
                         (*instanceCount)++;
                     }
-
-                    if ( i == 0 || getBlockAt(i-1, k, j)->state == nullptr ) {
+                    
+                    nextBlock = w->getBlockAt(x-1, y, z);
+                    if ( nextBlock == nullptr || nextBlock->state == nullptr ) {
                         // Left of block
                         buffer[*instanceCount].transform = blockPositionTranslationMatrix * scale * moveFaceToLeft();
                         buffer[*instanceCount].normalTransform = discardTranslation(buffer[*instanceCount].transform);
@@ -87,7 +94,8 @@ void Chunk::calculateMesh(Renderer *renderer) {
                         (*instanceCount)++;
                     }
 
-                    if ( j == BLOCKS_NUM_Z - 1 || getBlockAt(i, k, j+1)->state == nullptr ){
+                    nextBlock = w->getBlockAt(x, y, z+1);
+                    if ( nextBlock == nullptr || nextBlock->state == nullptr ){
                         // Back of block
                         buffer[*instanceCount].transform = blockPositionTranslationMatrix * scale * moveFaceToBack();
                         buffer[*instanceCount].normalTransform = discardTranslation(buffer[*instanceCount].transform);
@@ -97,7 +105,8 @@ void Chunk::calculateMesh(Renderer *renderer) {
                         (*instanceCount)++;
                     }
 
-                    if ( i == BLOCKS_NUM_X-1 || getBlockAt(i+1, k, j)->state == nullptr ){
+                    nextBlock = w->getBlockAt(x+1, y, z);
+                    if ( nextBlock == nullptr || nextBlock->state == nullptr ){
                         // Right of block
                         buffer[*instanceCount].transform = blockPositionTranslationMatrix * scale * moveFaceToRight();
                         buffer[*instanceCount].normalTransform = discardTranslation(buffer[*instanceCount].transform);
@@ -107,7 +116,8 @@ void Chunk::calculateMesh(Renderer *renderer) {
                         (*instanceCount)++;
                     }
                     
-                    if ( k == BLOCKS_NUM_Y - 1 || getBlockAt(i, k+1, j)->state == nullptr ){
+                    nextBlock = w->getBlockAt(x, y+1, z);
+                    if ( nextBlock == nullptr || nextBlock->state == nullptr ){
                         // Top of block
                         buffer[*instanceCount].transform = blockPositionTranslationMatrix * scale * moveFaceToTop();
                         buffer[*instanceCount].normalTransform = discardTranslation(buffer[*instanceCount].transform);
@@ -117,7 +127,8 @@ void Chunk::calculateMesh(Renderer *renderer) {
                         (*instanceCount)++;
                     }
 
-                    if ( k == 0 || getBlockAt(i, k-1, j)->state == nullptr ) {
+                    nextBlock = w->getBlockAt(x, y-1, z);
+                    if ( nextBlock == nullptr || nextBlock->state == nullptr ) {
                         // Bottom of block
                         buffer[*instanceCount].transform = blockPositionTranslationMatrix * scale * moveFaceToBottom();
                         buffer[*instanceCount].normalTransform = discardTranslation(buffer[*instanceCount].transform);
@@ -140,32 +151,34 @@ void Chunk::placeBlockAt(int x, int y, int z, BlockState *state, Renderer *rende
     int *count = renderer->instanceCount();
     
     Block *currBlock = getBlockAt(x, y, z);
-    Block *nextBlock;
-    
     currBlock->state = state;
+    
+    Block *nextBlock = nullptr;
     
     const float scl = BLOCK_SIZE;
     const float4x4 scale = makeScale( (float3){ scl, scl, scl } );
+    
+    int globalX = m_xCoordinate * BLOCKS_NUM_X + x;
+    int globalY = m_yCoordinate * BLOCKS_NUM_Y + y;
+    int globalZ = m_zCoordinate * BLOCKS_NUM_Z + z;
     
     if ( state != nullptr ) {
         // We're placing a block.
         m_blockCount++;
         
         float4x4 blockPositionTranslationMatrix =
-            makeTranslate((float3) {m_xCoordinate * BLOCKS_NUM_X + scl*x,
-                                    m_yCoordinate * BLOCKS_NUM_Y + scl*y,
-                                    m_zCoordinate * BLOCKS_NUM_Z - scl*z} );
+            makeTranslate((float3) { globalX*scl, globalY*scl, -globalZ*scl} );
         
         
         // Front of block
-        nextBlock = world->getBlockAt(x, y, z-1);
+        nextBlock = world->getBlockAt(globalX, globalY, globalZ-1);
         if ( nextBlock == nullptr || nextBlock->state == nullptr ) {
             // The block doesn't exist or it is an air block.
             // Draw face.
             buffer[*count].transform = blockPositionTranslationMatrix * scale;
             buffer[*count].normalTransform = Math3D::discardTranslation(buffer[*count].transform);
             buffer[*count].textureId = currBlock->state->frontTexture();
-            buffer[*count].blockCoordinates = {x, y, z};
+            buffer[*count].blockCoordinates = {globalX, globalY, globalZ};
             currBlock->faceIndices[Faces::Front] = *count;
             
             ++(*count);
@@ -178,12 +191,12 @@ void Chunk::placeBlockAt(int x, int y, int z, BlockState *state, Renderer *rende
         }
         
         // Left of block
-        nextBlock = world->getBlockAt(x-1, y, z);
+        nextBlock = world->getBlockAt(globalX-1, globalY, globalZ);
         if ( nextBlock == nullptr || nextBlock->state == nullptr ) {
             buffer[*count].transform = blockPositionTranslationMatrix * scale * moveFaceToLeft();
             buffer[*count].normalTransform = discardTranslation(buffer[*count].transform);
             buffer[*count].textureId = currBlock->state->leftTexture();
-            buffer[*count].blockCoordinates = {x, y, z};
+            buffer[*count].blockCoordinates = {globalX, globalY, globalZ};
             currBlock->faceIndices[Faces::Left] = *count;
             
             ++(*count);
@@ -193,12 +206,12 @@ void Chunk::placeBlockAt(int x, int y, int z, BlockState *state, Renderer *rende
         }
        
         // Back of block
-        nextBlock = world->getBlockAt(x, y, z+1);
+        nextBlock = world->getBlockAt(globalX, globalY, globalZ+1);
         if ( nextBlock == nullptr || nextBlock->state == nullptr ) {
             buffer[*count].transform = blockPositionTranslationMatrix * scale * moveFaceToBack();
             buffer[*count].normalTransform = discardTranslation(buffer[*count].transform);
             buffer[*count].textureId = currBlock->state->backTexture();
-            buffer[*count].blockCoordinates = {x, y, z};
+            buffer[*count].blockCoordinates = {globalX, globalY, globalZ};
             currBlock->faceIndices[Faces::Back] = *count;
             
             ++(*count);
@@ -208,13 +221,13 @@ void Chunk::placeBlockAt(int x, int y, int z, BlockState *state, Renderer *rende
         }
         
         // Right of block
-        nextBlock = world->getBlockAt(x+1, y, z);
+        nextBlock = world->getBlockAt(globalX+1, globalY, globalZ);
         if ( nextBlock == nullptr || nextBlock->state == nullptr ) {
 //            printf("\tDrawing right face.\n");
             buffer[*count].transform = blockPositionTranslationMatrix * scale * moveFaceToRight();
             buffer[*count].normalTransform = discardTranslation(buffer[*count].transform);
             buffer[*count].textureId = currBlock->state->rightTexture();
-            buffer[*count].blockCoordinates = {x, y, z};
+            buffer[*count].blockCoordinates = {globalX, globalY, globalZ};
             currBlock->faceIndices[Faces::Right] = *count;
             
             ++(*count);
@@ -224,13 +237,13 @@ void Chunk::placeBlockAt(int x, int y, int z, BlockState *state, Renderer *rende
         }
         
         // Top of block
-        nextBlock = world->getBlockAt(x, y+1, z);
+        nextBlock = world->getBlockAt(globalX, globalY+1, globalZ);
         if ( nextBlock == nullptr || nextBlock->state == nullptr ) {
 //            printf("\tDrawing top face.\n");
             buffer[*count].transform = blockPositionTranslationMatrix * scale * moveFaceToTop();
             buffer[*count].normalTransform = discardTranslation(buffer[*count].transform);
             buffer[*count].textureId = currBlock->state->topTexture();
-            buffer[*count].blockCoordinates = {x, y, z};
+            buffer[*count].blockCoordinates = {globalX, globalY, globalZ};
             currBlock->faceIndices[Faces::Top] = *count;
             
             ++(*count);
@@ -240,12 +253,12 @@ void Chunk::placeBlockAt(int x, int y, int z, BlockState *state, Renderer *rende
         }
         
         // Bottom of block
-        nextBlock = world->getBlockAt(x, y-1, z);
+        nextBlock = world->getBlockAt(globalX, globalY-1, globalZ);
         if ( nextBlock == nullptr || nextBlock->state == nullptr ) {
             buffer[*count].transform = blockPositionTranslationMatrix * scale * moveFaceToBottom();
             buffer[*count].normalTransform = discardTranslation(buffer[*count].transform);
             buffer[*count].textureId = currBlock->state->bottomTexture();
-            buffer[*count].blockCoordinates = {x, y, z};
+            buffer[*count].blockCoordinates = {globalX, globalY, globalZ};
             currBlock->faceIndices[Faces::Bottom] = *count;
             
             ++(*count);
@@ -260,17 +273,17 @@ void Chunk::placeBlockAt(int x, int y, int z, BlockState *state, Renderer *rende
         float4x4 blockPositionTranslationMatrix;
         
         // Front of block
-        nextBlock = world->getBlockAt(x, y, z-1);
+        nextBlock = world->getBlockAt(globalX, globalY, globalZ-1);
         if ( nextBlock != nullptr && nextBlock->state != nullptr ) {
             blockPositionTranslationMatrix=
-                makeTranslate((float3) {m_xCoordinate * BLOCKS_NUM_X + scl*x,
-                                        m_yCoordinate * BLOCKS_NUM_Y + scl*y,
-                                        m_zCoordinate * BLOCKS_NUM_Z - scl*(z-1)} );
+                makeTranslate((float3) {globalX*scl,
+                                        globalY*scl,
+                                        (globalZ+1)* scl } );
             
             buffer[*count].transform = blockPositionTranslationMatrix * scale * moveFaceToBack();
             buffer[*count].normalTransform = Math3D::discardTranslation(buffer[*count].transform);
             buffer[*count].textureId = nextBlock->state->backTexture();
-            buffer[*count].blockCoordinates = {x, y, z-1};
+            buffer[*count].blockCoordinates = {globalX, globalY, globalZ-1};
             nextBlock->faceIndices[Faces::Back] = *count;
             
             ++(*count);
@@ -280,17 +293,17 @@ void Chunk::placeBlockAt(int x, int y, int z, BlockState *state, Renderer *rende
         }
         
         // Left of block
-        nextBlock = world->getBlockAt(x-1, y, z);
+        nextBlock = world->getBlockAt(globalX-1, globalY, globalZ);
         if ( nextBlock != nullptr && nextBlock->state != nullptr ) {
             blockPositionTranslationMatrix =
-                makeTranslate((float3) {m_xCoordinate * BLOCKS_NUM_X + scl*(x-1),
-                                        m_yCoordinate * BLOCKS_NUM_Y + scl*y,
-                                        m_zCoordinate * BLOCKS_NUM_Z - scl*z} );
+                makeTranslate((float3) {(globalX-1)*scl,
+                                        globalY*scl,
+                                        globalZ*scl} );
             
             buffer[*count].transform = blockPositionTranslationMatrix * scale * moveFaceToRight();
             buffer[*count].normalTransform = discardTranslation(buffer[*count].transform);
             buffer[*count].textureId = nextBlock->state->rightTexture();
-            buffer[*count].blockCoordinates = {x-1, y, z};
+            buffer[*count].blockCoordinates = {globalX-1, globalY, globalZ};
             nextBlock->faceIndices[Faces::Right] = *count;
             
             ++(*count);
@@ -300,17 +313,17 @@ void Chunk::placeBlockAt(int x, int y, int z, BlockState *state, Renderer *rende
         }
        
         // Back of block
-        nextBlock = world->getBlockAt(x, y, z+1);
+        nextBlock = world->getBlockAt(globalX, globalY, globalZ+1);
         if ( nextBlock != nullptr && nextBlock->state != nullptr ) {
             blockPositionTranslationMatrix =
-                makeTranslate((float3) {m_xCoordinate * BLOCKS_NUM_X + scl*x,
-                                        m_yCoordinate * BLOCKS_NUM_Y + scl*y,
-                                        m_zCoordinate * BLOCKS_NUM_Z - scl*(z+1)} );
+                makeTranslate((float3) {globalX*scl,
+                                        globalY*scl,
+                                        (globalZ-1)*scl } );
             
             buffer[*count].transform = blockPositionTranslationMatrix * scale;
             buffer[*count].normalTransform = discardTranslation(buffer[*count].transform);
             buffer[*count].textureId = nextBlock->state->frontTexture();
-            buffer[*count].blockCoordinates = {x, y, z+1};
+            buffer[*count].blockCoordinates = {globalX, globalY, globalZ+1};
             nextBlock->faceIndices[Faces::Front] = *count;
             
             ++(*count);
@@ -320,17 +333,17 @@ void Chunk::placeBlockAt(int x, int y, int z, BlockState *state, Renderer *rende
         }
         
         // Right of block
-        nextBlock = world->getBlockAt(x+1, y, z);
+        nextBlock = world->getBlockAt(globalX+1, globalY, globalZ);
         if ( nextBlock != nullptr && nextBlock->state != nullptr ) {
             blockPositionTranslationMatrix =
-                makeTranslate((float3) {m_xCoordinate * BLOCKS_NUM_X + scl*(x+1),
-                                        m_yCoordinate * BLOCKS_NUM_Y + scl*y,
-                                        m_zCoordinate * BLOCKS_NUM_Z - scl*z} );
+                makeTranslate((float3) {(globalX+1)*scl,
+                                        globalY*scl,
+                                        globalZ*scl } );
             
             buffer[*count].transform = blockPositionTranslationMatrix * scale * moveFaceToLeft();
             buffer[*count].normalTransform = discardTranslation(buffer[*count].transform);
             buffer[*count].textureId = nextBlock->state->leftTexture();
-            buffer[*count].blockCoordinates = {x+1, y, z};
+            buffer[*count].blockCoordinates = {globalX+1, globalY, globalZ};
             nextBlock->faceIndices[Faces::Left] = *count;
             
             ++(*count);
@@ -340,17 +353,17 @@ void Chunk::placeBlockAt(int x, int y, int z, BlockState *state, Renderer *rende
         }
         
         // Top of block
-        nextBlock = world->getBlockAt(x, y+1, z);
+        nextBlock = world->getBlockAt(globalX, globalY+1, globalZ);
         if ( nextBlock != nullptr && nextBlock->state != nullptr ) {
             blockPositionTranslationMatrix =
-                makeTranslate((float3) {m_xCoordinate * BLOCKS_NUM_X + scl*x,
-                                        m_yCoordinate * BLOCKS_NUM_Y + scl*(y+1),
-                                        m_zCoordinate * BLOCKS_NUM_Z - scl*z} );
+                makeTranslate((float3) {globalX*scl,
+                                        (globalY+1)*scl,
+                                        globalZ*scl} );
             
             buffer[*count].transform = blockPositionTranslationMatrix * scale * moveFaceToBottom();
             buffer[*count].normalTransform = discardTranslation(buffer[*count].transform);
             buffer[*count].textureId = nextBlock->state->bottomTexture();
-            buffer[*count].blockCoordinates = {x, y+1, z};
+            buffer[*count].blockCoordinates = {globalX, globalY+1, globalZ};
             nextBlock->faceIndices[Faces::Bottom] = *count;
             
             ++(*count);
@@ -360,17 +373,17 @@ void Chunk::placeBlockAt(int x, int y, int z, BlockState *state, Renderer *rende
         }
         
         // Bottom of block
-        nextBlock = world->getBlockAt(x, y-1, z);
+        nextBlock = world->getBlockAt(globalX, globalY-1, globalZ);
         if ( nextBlock != nullptr && nextBlock->state != nullptr ) {
             blockPositionTranslationMatrix =
-                makeTranslate((float3) {m_xCoordinate * BLOCKS_NUM_X + scl*x,
-                                        m_yCoordinate * BLOCKS_NUM_Y + scl*(y-1),
-                                        m_zCoordinate * BLOCKS_NUM_Z - scl*z} );
+                makeTranslate((float3) {globalX*scl,
+                                        (globalY-1)*scl,
+                                        globalZ*scl} );
             
             buffer[*count].transform = blockPositionTranslationMatrix * scale * moveFaceToTop();
             buffer[*count].normalTransform = discardTranslation(buffer[*count].transform);
             buffer[*count].textureId = nextBlock->state->topTexture();
-            buffer[*count].blockCoordinates = {x, y-1, z};
+            buffer[*count].blockCoordinates = {globalX, globalY-1, globalZ};
             nextBlock->faceIndices[Faces::Top] = *count;
             
             ++(*count);

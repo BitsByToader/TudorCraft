@@ -68,6 +68,10 @@ public:
 
     std::mutex m_gpuMutex;
     
+    // Change me
+    simd::float3 m_playerPos = (simd::float3) { 0.f, 0.f, 0.f };
+    simd::float2 m_centerChunk = (simd::float2) { 0.f, 0.f };
+    
 private:
     static Renderer *globalObject;
     
@@ -130,9 +134,6 @@ private:
     
     float m_yawAngle = 0.f;
     float m_pitchAngle = 0.f;
-    
-    simd::float3 m_playerPos = (simd::float3) { 0.f, 0.f, -20.f };
-    bool fuckmemate = true;
 };
 
 #endif /* Renderer_hpp */

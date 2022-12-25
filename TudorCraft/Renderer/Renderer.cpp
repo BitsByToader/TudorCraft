@@ -114,7 +114,7 @@ void Renderer::loadMetal() {
 //        m_instanceDataBuffers[i] = m_device->newBuffer(16 * 16 * 16 * 6 * sizeof(InstanceData), MTL::ResourceStorageModeShared);
 //    }
     
-    m_instanceDataBuffer = m_device->newBuffer(16 * 16 * 16 * 6 * sizeof(InstanceData), MTL::ResourceStorageModeShared);
+    m_instanceDataBuffer = m_device->newBuffer(20 * 24 * 16 * 16 * 16 * 6 * sizeof(InstanceData), MTL::ResourceStorageModeShared);
     
     createHeap();
     moveResourcesToHeap();
@@ -291,6 +291,8 @@ void Renderer::draw(MTL::RenderPassDescriptor *currentRPD, MTL::Drawable* curren
         return;
     }
     
+    printf("%f %f %f\n", m_playerPos.x, m_playerPos.y, m_playerPos.z);
+    
     NS::AutoreleasePool* pPool = NS::AutoreleasePool::alloc()->init();
     
     using namespace simd;
@@ -358,42 +360,42 @@ void Renderer::draw(MTL::RenderPassDescriptor *currentRPD, MTL::Drawable* curren
 
 // MARK: - Player moving methods
 void Renderer::forward() {
-    m_playerPos.x += sinf(-m_yawAngle);
+    m_playerPos.x += 2*sinf(-m_yawAngle);
     
-    m_playerPos.z += cosf(m_yawAngle) * cosf(m_pitchAngle);
-    m_playerPos.y += cosf(m_yawAngle) * sinf(-m_pitchAngle);
+    m_playerPos.z += 2*cosf(m_yawAngle) * cosf(m_pitchAngle);
+    m_playerPos.y += 2*cosf(m_yawAngle) * sinf(-m_pitchAngle);
 };
 void Renderer::backward() {
-    m_playerPos.x -= sinf(-m_yawAngle);
+    m_playerPos.x -= 2*sinf(-m_yawAngle);
     
-    m_playerPos.z -= cosf(m_yawAngle) * cosf(m_pitchAngle);
-    m_playerPos.y -= cosf(m_yawAngle) * sinf(-m_pitchAngle);
+    m_playerPos.z -= 2*cosf(m_yawAngle) * cosf(m_pitchAngle);
+    m_playerPos.y -= 2*cosf(m_yawAngle) * sinf(-m_pitchAngle);
 };
 void Renderer::left() {
-    m_playerPos.x -= -cosf(m_yawAngle);
-    m_playerPos.z -= sinf(-m_yawAngle);
+    m_playerPos.x -= 2*-cosf(m_yawAngle);
+    m_playerPos.z -= 2*sinf(-m_yawAngle);
 };
 void Renderer::right() {
-    m_playerPos.x += -cosf(m_yawAngle);
-    m_playerPos.z += sinf(-m_yawAngle);
+    m_playerPos.x += 2*-cosf(m_yawAngle);
+    m_playerPos.z += 2*sinf(-m_yawAngle);
 };
 
 void Renderer::up() {
-    m_playerPos.y -= 1.f;
+    m_playerPos.y -= 2.f;
     
-    m_gpuMutex.lock();
-    World *w = World::shared();
-    w->placeBlockAt(0, 0, 0, nullptr);
-    m_gpuMutex.unlock();
+//    m_gpuMutex.lock();
+//    World *w = World::shared();
+//    w->placeBlockAt(32, 0, 0, nullptr);
+//    m_gpuMutex.unlock();
 };
 
 void Renderer::down() {
-    m_playerPos.y += 1.f;
+    m_playerPos.y += 2.f;
     
-    m_gpuMutex.lock();
-    World *w = World::shared();
-    w->placeBlockAt(0, 0, 0, BlockState::GrassBlock());
-    m_gpuMutex.unlock();
+//    m_gpuMutex.lock();
+//    World *w = World::shared();
+//    w->placeBlockAt(32, 0, 0, BlockState::GrassBlock());
+//    m_gpuMutex.unlock();
 };
 
 void Renderer::lookUp() {
@@ -454,7 +456,7 @@ void Renderer::removeInstanceAt(int index) {
         }
     }
     
-    --m_instanceCount;
+    --m_instanceCount; 
 };
 
 

@@ -39,6 +39,8 @@ public:
     void flushOutput();
     void flushInput();
     
+    void skipRestOfPacket();
+    
     //MARK: - Streamable interface
     size_t readBytes(uint8_t *buffer, size_t length) override;
     size_t writeBytes(uint8_t *buffer, size_t length) override;
@@ -82,14 +84,20 @@ public:
     
 private:
     //MARK: - Members
+    // Connection members
     MCP::ConnectionState *m_connectionState;
     int m_socketDescriptor;
     
+    // Buffer management members
     unsigned char m_sendBuffer[SEND_BUFFER_SIZE];
     int m_sendBufferCurrentOffset = 0;
     
     unsigned char m_recvBuffer[RECV_BUFFER_SIZE];
     int m_recvBufferCurrentOffset = 0;
+    
+    // Members for skipping the rest of a packet
+    int m_currentPacketBytesRead = 0;
+    int m_currentPacketLength = 0;
 };
 
 #endif /* TCPStream_hpp */

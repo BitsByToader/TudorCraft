@@ -47,6 +47,8 @@ public:
     /// - Returns: The chunk or `nullptr` if the chunk was not found
     Chunk* getChunkAt(int x, int y, int z);
     
+    void loadChunk(Chunk *c);
+    
     /// Returns the block at the given coordinates for the loaded chunks.
     /// - Parameters:
     ///   - x: X coordinate of block.
@@ -62,6 +64,8 @@ public:
     ///   - z: Z world coordinate
     ///   - state: The new state of the block at the coordinates. Pass `nullptr` to remove a block from the world.
     void placeBlockAt(int x, int y, int z, BlockState *state);
+    
+    void calculateMeshes();
     
 private:
     static World *m_globalObject;

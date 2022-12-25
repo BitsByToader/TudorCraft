@@ -211,10 +211,13 @@ public:
         return (int) MCP::ClientBoundPlayingPacketTypes::ChunkData;
     }
     
+    void updateGame();
+    
     struct ChunkSection {
         struct PalletedContainer {
             uint8_t bitsPerEntry;
-            VarInt palleteLength; // or value if bitsPerEntry = 0
+            VarInt palleteLength;
+            VarInt palleteValue; // if bitsPerEntry == 0
             std::vector<VarInt> pallete;
             VarInt dataArrayLength;
             std::vector<int64_t> dataArray;
@@ -224,7 +227,7 @@ public:
         PalletedContainer blockStates;
         PalletedContainer biomes;
     };
-
+    
 private:
     int m_chunkX;
     int m_chunkZ;

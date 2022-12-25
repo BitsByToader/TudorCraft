@@ -9,6 +9,9 @@
 
 #include "TCPStream.hpp"
 
+#include "World.hpp"
+#include "Chunk.hpp"
+
 using namespace MCP;
 
 //MARK: - Handshake Packet
@@ -87,7 +90,7 @@ void PlayerInfoPacket::read(TCPStream *stream) {
     
     *stream >> &m_action;
     *stream >> &playerCount;
-
+    
     m_uuids.reserve(playerCount.value());
     
     switch (m_action.value()) {
@@ -134,13 +137,13 @@ void PlayerInfoPacket::read(TCPStream *stream) {
                         player.signature.push_back(c);
                     }
                 }
-                 
+                
                 m_players.push_back(player);
             }
             
             break;
         }
-        
+            
         case 1: { // Update gamemode
             MCP::Uuid uuid;
             *stream >> &uuid;
@@ -159,7 +162,7 @@ void PlayerInfoPacket::read(TCPStream *stream) {
             
             break;
         }
-        
+            
         case 2: { // Update latency
             m_gamemodes.reserve(playerCount.value());
             for ( int i = 0; i < playerCount.value(); i++ ) {
@@ -174,7 +177,7 @@ void PlayerInfoPacket::read(TCPStream *stream) {
             
             break;
         }
-        
+            
         case 3: { // Update display name
             m_names.reserve(playerCount.value());
             for ( int i = 0; i < playerCount.value(); i++ ) {
@@ -233,12 +236,18 @@ void SynchronizePlayerPositionPacket::read(TCPStream *stream) {
     *stream >> (int8_t *) &m_flags;
     *stream >> &m_teleportId;
     *stream >> (int8_t *) &m_dismountVehicle;
+    
+    AAPL_PRINT("Spawn:", m_x, m_y, m_z);
+    Renderer::shared()->m_playerPos = { (float)m_x, (float)m_y, (float)m_z };
 };
 
 //MARK: - Center Chunk Packet
 void CenterChunkPacket::read(TCPStream *stream) {
     *stream >> &m_chunkX;
     *stream >> &m_chunkZ;
+    
+    AAPL_PRINT("Center:", m_chunkX.value(), m_chunkZ.value());
+    Renderer::shared()->m_centerChunk = { (float)m_chunkX.value(), (float)m_chunkZ.value() };
 };
 
 //MARK: - Chunk Data Packet
@@ -256,13 +265,18 @@ void ChunkDataPacket::read(TCPStream *stream) {
         
         // BlockStates Pallete
         *stream >> &section.blockStates.bitsPerEntry;
-        *stream >> &section.blockStates.palleteLength;
         
-        section.blockStates.pallete.reserve(section.blockStates.palleteLength.value());
-        for ( int i = 0; i < section.blockStates.palleteLength.value(); i++ ) {
-            VarInt v;
-            *stream >> &v;
-            section.blockStates.pallete.push_back(v);
+        if ( section.blockStates.bitsPerEntry == 0 ) {
+            *stream >> &section.blockStates.palleteValue;
+        } else {
+            *stream >> &section.blockStates.palleteLength;
+            
+            section.blockStates.pallete.reserve(section.blockStates.palleteLength.value());
+            for ( int i = 0; i < section.blockStates.palleteLength.value(); i++ ) {
+                VarInt v;
+                *stream >> &v;
+                section.blockStates.pallete.push_back(v);
+            }
         }
         
         *stream >> &section.blockStates.dataArrayLength;
@@ -276,13 +290,18 @@ void ChunkDataPacket::read(TCPStream *stream) {
         
         // Biomes Pallete
         *stream >> &section.biomes.bitsPerEntry;
-        *stream >> &section.biomes.palleteLength;
         
-        section.biomes.pallete.reserve(section.biomes.palleteLength.value());
-        for ( int i = 0; i < section.biomes.palleteLength.value(); i++ ) {
-            VarInt v;
-            *stream >> &v;
-            section.biomes.pallete.push_back(v);
+        if ( section.biomes.bitsPerEntry == 0 ) {
+            *stream >> &section.biomes.palleteValue;
+        } else {
+            *stream >> &section.biomes.palleteLength;
+            
+            section.biomes.pallete.reserve(section.biomes.palleteLength.value());
+            for ( int i = 0; i < section.biomes.palleteLength.value(); i++ ) {
+                VarInt v;
+                *stream >> &v;
+                section.biomes.pallete.push_back(v);
+            }
         }
         
         *stream >> &section.biomes.dataArrayLength;
@@ -297,4 +316,65 @@ void ChunkDataPacket::read(TCPStream *stream) {
         
         m_data.push_back(section);
     };
+    
+    stream->skipRestOfPacket();
 };
+
+void ChunkDataPacket::updateGame() {
+    simd::float2 pos = { (float)m_chunkX, (float)m_chunkZ };
+    simd::float2 center = Renderer::shared()->m_centerChunk;
+    
+    if ( simd::distance(center, pos) > 3 )
+        return;
+    
+    World *w = World::shared();
+    
+    // For every chunk in the section
+    for ( int chunkY = 0; chunkY < 384/16; chunkY++ ) {
+        MCP::ChunkDataPacket::ChunkSection section = m_data.at(chunkY);
+        MCP::ChunkDataPacket::ChunkSection::PalletedContainer blocks = section.blockStates;
+        
+        Chunk *newChunk = new Chunk(m_chunkX, chunkY, m_chunkZ);
+        w->loadChunk(newChunk);
+        
+        int blockCount = section.blockCount;
+        
+        if ( blocks.bitsPerEntry == 0 || blockCount == 0 ) {
+            continue;
+        }
+        
+        int longCount = 0;
+        int longShiftCount = 0;
+        int64_t longToUse = blocks.dataArray[0];
+        int64_t mask = pow(2, blocks.bitsPerEntry) - 1;
+        
+        // For every block in the chunk
+        for ( int y = 0; y < 16; y++ ) {
+            for ( int z = 0; z < 16; z++ ) {
+                for ( int x = 0; x < 16; x++ ) {
+                    int64_t indexInPallete = longToUse & mask;
+                    
+                    longToUse >>= blocks.bitsPerEntry;
+                    
+                    longShiftCount++;
+                    
+                    if ( longShiftCount == 64/blocks.bitsPerEntry ) {
+                        longShiftCount = 0;
+                        longCount++;
+                        longToUse = blocks.dataArray[longCount];
+                    }
+                    
+                    if ( blocks.pallete[indexInPallete].value() != 0 &&
+                         !(blocks.pallete[indexInPallete].value() >= 75 && blocks.pallete[indexInPallete].value() <= 90)  ) {
+//                        newChunk->setBlockAt(x, y, z, BlockState::GrassBlock());
+                        newChunk->placeBlockAt(x, y, z, BlockState::GrassBlock());
+                    }
+                }
+            }
+        }
+    }
+    
+//    w->calculateMeshes();
+};
+
+//MARK: -
