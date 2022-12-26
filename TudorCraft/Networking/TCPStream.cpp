@@ -78,22 +78,27 @@ void TCPStream::skipRestOfPacket() {
     
     readBytes(m_recvBuffer, lengthToSkip);
     
-    AAPL_PRINT("Skipped", lengthToSkip, "bytes");
-    
     flushInput();
 };
 
 size_t TCPStream::readBytes(uint8_t *buffer, size_t length) {
-    long bytesRead = recv(m_socketDescriptor, buffer, length, 0);
+    int64_t read = 0;
     
-    if ( bytesRead == 0 || bytesRead == -1 ) {
-        *m_connectionState = MCP::ConnectionState::Unconnected;
-        return -1;
+    while ( length > 0 ) {
+        int64_t biggestSizePossible = (length > RECV_BUFFER_SIZE) ? RECV_BUFFER_SIZE : length;
+        int64_t bytesRead = recv(m_socketDescriptor, buffer+read, biggestSizePossible, 0);
+        
+        m_currentPacketBytesRead += bytesRead;
+        length -= bytesRead;
+        read += bytesRead;
+        
+        if ( bytesRead == 0 || bytesRead == -1 ) {
+            *m_connectionState = MCP::ConnectionState::Unconnected;
+            return -1;
+        }
     }
     
-    m_currentPacketBytesRead += bytesRead;
-    
-    return bytesRead;
+    return read;
 };
 
 #warning Refactor this to return the actual amount of sent bytes.
@@ -140,8 +145,8 @@ const TCPStream &TCPStream::operator>>(MCP::Packet *packet) {
     
     *this >> &packetId;
     
-    printf("Received packed with id: 0x%x\n", packetId.value());
-    printf("Length: %d\n", packetLength.value());
+//    printf("Received packed with id: 0x%x\n", packetId.value());
+//    printf("Length: %d\n", packetLength.value());
     
     if ( *m_connectionState == MCP::ConnectionState::Handshaking ) {
         if ( packetId.value() == (int)MCP::HandshakingPacketTypes::LoginSuccess ) {
@@ -209,27 +214,17 @@ const TCPStream &TCPStream::operator>>(MCP::Packet *packet) {
             }
                 
             default: {
-                int64_t lengthToSkip = packetLength.value() - packetId.size();
                 // We don't support this packet yet, so skip the length of the buffer
-                
-                while ( lengthToSkip > 0 ) {
-                    int64_t biggestSizePossible = (lengthToSkip - RECV_BUFFER_SIZE > 0) ? RECV_BUFFER_SIZE : lengthToSkip;
-                    
-                    int64_t bytesRead = readBytes(m_recvBuffer, biggestSizePossible);
-                    
-                    lengthToSkip -= bytesRead;
-                    
-                    if ( bytesRead <= 0 ) {
-                        break;
-                    }
-                }
+                int64_t lengthToSkip = packetLength.value() - packetId.size();
+                readBytes(m_recvBuffer, lengthToSkip);
+                flushInput();
                 
                 break;
             }
         }
     }
     
-    std::cout << std::endl;
+//    std::cout << std::endl;
     
     return *this;
 };

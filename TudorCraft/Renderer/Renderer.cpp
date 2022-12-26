@@ -114,7 +114,7 @@ void Renderer::loadMetal() {
 //        m_instanceDataBuffers[i] = m_device->newBuffer(16 * 16 * 16 * 6 * sizeof(InstanceData), MTL::ResourceStorageModeShared);
 //    }
     
-    m_instanceDataBuffer = m_device->newBuffer(20 * 24 * 16 * 16 * 16 * 6 * sizeof(InstanceData), MTL::ResourceStorageModeShared);
+    m_instanceDataBuffer = m_device->newBuffer(10 * 24 * 16 * 16 * 16 * 6 * sizeof(InstanceData), MTL::ResourceStorageModeShared);
     
     createHeap();
     moveResourcesToHeap();
@@ -291,8 +291,6 @@ void Renderer::draw(MTL::RenderPassDescriptor *currentRPD, MTL::Drawable* curren
         return;
     }
     
-    printf("%f %f %f\n", m_playerPos.x, m_playerPos.y, m_playerPos.z);
-    
     NS::AutoreleasePool* pPool = NS::AutoreleasePool::alloc()->init();
     
     using namespace simd;
@@ -338,8 +336,6 @@ void Renderer::draw(MTL::RenderPassDescriptor *currentRPD, MTL::Drawable* curren
         // Set modes for 3D rendering
         renderEncoder->setCullMode( MTL::CullModeBack );
         renderEncoder->setFrontFacingWinding( MTL::Winding::WindingCounterClockwise );
-        
-//        AAPL_PRINT(m_instanceCount);
         
         // Draw our cubes.
         renderEncoder->drawIndexedPrimitives(MTL::PrimitiveType::PrimitiveTypeTriangle, // Primitive type

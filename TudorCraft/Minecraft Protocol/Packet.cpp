@@ -81,6 +81,8 @@ void LoginSuccessPacket::read(TCPStream *stream) {
         
         m_properties.push_back(p);
     }
+    
+    AAPL_PRINT("Username:", m_username);
 };
 
 //MARK: - Player Info Packet
@@ -329,12 +331,14 @@ void ChunkDataPacket::updateGame() {
     
     World *w = World::shared();
     
+    Renderer::shared()->m_gpuMutex.lock();
+    
     // For every chunk in the section
     for ( int chunkY = 0; chunkY < 384/16; chunkY++ ) {
         MCP::ChunkDataPacket::ChunkSection section = m_data.at(chunkY);
         MCP::ChunkDataPacket::ChunkSection::PalletedContainer blocks = section.blockStates;
         
-        Chunk *newChunk = new Chunk(m_chunkX, chunkY, m_chunkZ);
+        Chunk *newChunk = new Chunk(m_chunkX, chunkY-4, m_chunkZ);
         w->loadChunk(newChunk);
         
         int blockCount = section.blockCount;
@@ -364,9 +368,7 @@ void ChunkDataPacket::updateGame() {
                         longToUse = blocks.dataArray[longCount];
                     }
                     
-                    if ( blocks.pallete[indexInPallete].value() != 0 &&
-                         !(blocks.pallete[indexInPallete].value() >= 75 && blocks.pallete[indexInPallete].value() <= 90)  ) {
-//                        newChunk->setBlockAt(x, y, z, BlockState::GrassBlock());
+                    if ( blocks.pallete[indexInPallete].value() != 0 ) {
                         newChunk->placeBlockAt(x, y, z, BlockState::GrassBlock());
                     }
                 }
@@ -374,7 +376,7 @@ void ChunkDataPacket::updateGame() {
         }
     }
     
-//    w->calculateMeshes();
+    Renderer::shared()->m_gpuMutex.unlock();
 };
 
 //MARK: -

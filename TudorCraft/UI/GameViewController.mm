@@ -72,7 +72,7 @@
     }
 #endif
     
-    m_client = new TCPClient("127.0.0.1", 25565);
+    m_client = new TCPClient("192.168.1.11", 25565); //192.168.1.11
 }
 
 - (void)drawInMTKView:(nonnull MTKView *)view {
