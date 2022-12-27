@@ -28,13 +28,13 @@
 #include "Math3D.hpp"
 
 //MARK: - Singleton
-Renderer *Renderer::globalObject = nullptr;
+Renderer *Renderer::m_sharedObject = nullptr;
 Renderer *Renderer::shared() {
-    if ( globalObject == nullptr ) {
-        globalObject = new Renderer();
+    if ( m_sharedObject == nullptr ) {
+        m_sharedObject = new Renderer();
     };
     
-    return globalObject;
+    return m_sharedObject;
 }
 
 // MARK: - Constructor
@@ -49,8 +49,6 @@ Renderer::Renderer() {
     // Create a blank texture atlas
     m_atlas = new TextureAtlas(m_device);
     m_atlas->loadAtlasInMemory();
-    
-    m_frame = 0;
     
     loadMetal();
 }
@@ -280,7 +278,7 @@ void Renderer::windowSizeWillChange(unsigned int width, unsigned int height) {
     m_windowSize.x = width;
     m_windowSize.y = height;
     CameraData *cameraData = reinterpret_cast<CameraData *>(m_cameraDataBuffer->contents());
-    cameraData->perspectiveTranform = Math3D::makePerspective(90.f * M_PI / 180.f, m_windowSize.x / m_windowSize.y, 0.03f, 500.0f);
+    cameraData->perspectiveTranform = Math3D::makePerspective(90.f * M_PI / 180.f, m_windowSize.x / m_windowSize.y, 0.01f, 10.f*100);
     
     pPool->release();
 };
@@ -307,7 +305,7 @@ void Renderer::draw(MTL::RenderPassDescriptor *currentRPD, MTL::Drawable* curren
     
     // MARK: World transformations
     CameraData *cameraData = reinterpret_cast<CameraData *>(m_cameraDataBuffer->contents());
-    cameraData->worldTranform = Math3D::makeXRotate4x4(m_pitchAngle) * Math3D::makeYRotate4x4(m_yawAngle) * Math3D::makeTranslate( m_playerPos );
+    cameraData->worldTranform = Math3D::makeXRotate4x4(m_pitchAngle) * Math3D::makeYRotate4x4(m_yawAngle) * Math3D::makeTranslate( cameraPosition );
     cameraData->worldNormalTranform = Math3D::discardTranslation(cameraData->worldTranform);
     
     // MARK: Configure draw command
@@ -356,28 +354,28 @@ void Renderer::draw(MTL::RenderPassDescriptor *currentRPD, MTL::Drawable* curren
 
 // MARK: - Player moving methods
 void Renderer::forward() {
-    m_playerPos.x += 2*sinf(-m_yawAngle);
+    cameraPosition.x += 2*sinf(-m_yawAngle);
     
-    m_playerPos.z += 2*cosf(m_yawAngle) * cosf(m_pitchAngle);
-    m_playerPos.y += 2*cosf(m_yawAngle) * sinf(-m_pitchAngle);
+    cameraPosition.z += 2*cosf(m_yawAngle) * cosf(m_pitchAngle);
+    cameraPosition.y += 2*cosf(m_yawAngle) * sinf(-m_pitchAngle);
 };
 void Renderer::backward() {
-    m_playerPos.x -= 2*sinf(-m_yawAngle);
+    cameraPosition.x -= 2*sinf(-m_yawAngle);
     
-    m_playerPos.z -= 2*cosf(m_yawAngle) * cosf(m_pitchAngle);
-    m_playerPos.y -= 2*cosf(m_yawAngle) * sinf(-m_pitchAngle);
+    cameraPosition.z -= 2*cosf(m_yawAngle) * cosf(m_pitchAngle);
+    cameraPosition.y -= 2*cosf(m_yawAngle) * sinf(-m_pitchAngle);
 };
 void Renderer::left() {
-    m_playerPos.x -= 2*-cosf(m_yawAngle);
-    m_playerPos.z -= 2*sinf(-m_yawAngle);
+    cameraPosition.x -= 2*-cosf(m_yawAngle);
+    cameraPosition.z -= 2*sinf(-m_yawAngle);
 };
 void Renderer::right() {
-    m_playerPos.x += 2*-cosf(m_yawAngle);
-    m_playerPos.z += 2*sinf(-m_yawAngle);
+    cameraPosition.x += 2*-cosf(m_yawAngle);
+    cameraPosition.z += 2*sinf(-m_yawAngle);
 };
 
 void Renderer::up() {
-    m_playerPos.y -= 2.f;
+    cameraPosition.y -= 2.f;
     
 //    m_gpuMutex.lock();
 //    World *w = World::shared();
@@ -386,7 +384,7 @@ void Renderer::up() {
 };
 
 void Renderer::down() {
-    m_playerPos.y += 2.f;
+    cameraPosition.y += 2.f;
     
 //    m_gpuMutex.lock();
 //    World *w = World::shared();
@@ -396,13 +394,13 @@ void Renderer::down() {
 
 void Renderer::lookUp() {
     if ( m_pitchAngle < M_PI/2) {
-        m_pitchAngle += 0.025f;
+        m_pitchAngle += 0.05f;
     }
 };
 
 void Renderer::lookDown() {
     if ( m_pitchAngle > -M_PI/2 ) {
-        m_pitchAngle -= 0.025f;
+        m_pitchAngle -= 0.05f;
     }
 };
 
@@ -410,7 +408,7 @@ void Renderer::lookRight() {
     if ( m_yawAngle == 2*M_PI ) {
         m_yawAngle = 0;
     } else {
-        m_yawAngle += 0.025f;
+        m_yawAngle += 0.05f;
     }
 };
 
@@ -418,7 +416,7 @@ void Renderer::lookLeft() {
     if (m_yawAngle == -2*M_PI ) {
         m_yawAngle = 0;
     } else {
-        m_yawAngle -= 0.025f;
+        m_yawAngle -= 0.05f;
     }
 };
 

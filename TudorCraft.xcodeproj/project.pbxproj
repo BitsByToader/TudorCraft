@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		8B0005DA295B0A4A00B4DE9D /* Engine.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8B0005D8295B0A4A00B4DE9D /* Engine.cpp */; };
 		8B0479F9293A7D9A00284659 /* TCPStream.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8B0479F7293A7D9A00284659 /* TCPStream.cpp */; };
 		8B0479FC293A821000284659 /* Packet.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8B0479FA293A821000284659 /* Packet.cpp */; };
 		8B04CBB129198B7500C54F7B /* test.png in Resources */ = {isa = PBXBuildFile; fileRef = 8B04CBB029198B7500C54F7B /* test.png */; };
@@ -35,6 +36,8 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		8B0005D8295B0A4A00B4DE9D /* Engine.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Engine.cpp; sourceTree = "<group>"; };
+		8B0005D9295B0A4A00B4DE9D /* Engine.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = Engine.hpp; sourceTree = "<group>"; };
 		8B0479F7293A7D9A00284659 /* TCPStream.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = TCPStream.cpp; sourceTree = "<group>"; };
 		8B0479F8293A7D9A00284659 /* TCPStream.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = TCPStream.hpp; sourceTree = "<group>"; };
 		8B0479FA293A821000284659 /* Packet.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Packet.cpp; sourceTree = "<group>"; };
@@ -229,6 +232,8 @@
 			isa = PBXGroup;
 			children = (
 				8B3ED5D82937D5000071F51E /* World */,
+				8B0005D8295B0A4A00B4DE9D /* Engine.cpp */,
+				8B0005D9295B0A4A00B4DE9D /* Engine.hpp */,
 			);
 			path = Engine;
 			sourceTree = "<group>";
@@ -324,6 +329,7 @@
 				8B9B832E2915951E00FB1030 /* Shaders.metal in Sources */,
 				8B0479FC293A821000284659 /* Packet.cpp in Sources */,
 				8BC709C52938FD010031B28A /* TCPClient.cpp in Sources */,
+				8B0005DA295B0A4A00B4DE9D /* Engine.cpp in Sources */,
 				8B1FF3C12913142500A9C095 /* Renderer.cpp in Sources */,
 				8B0479F9293A7D9A00284659 /* TCPStream.cpp in Sources */,
 				8B1FF3B029130D5500A9C095 /* ContentView.swift in Sources */,
@@ -487,8 +493,7 @@
 				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphonesimulator*]" = YES;
 				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphoneos*]" = UIStatusBarStyleDefault;
 				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphonesimulator*]" = UIStatusBarStyleDefault;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				IPHONEOS_DEPLOYMENT_TARGET = 16.1;
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
@@ -540,8 +545,7 @@
 				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphonesimulator*]" = YES;
 				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphoneos*]" = UIStatusBarStyleDefault;
 				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphonesimulator*]" = UIStatusBarStyleDefault;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				IPHONEOS_DEPLOYMENT_TARGET = 16.1;
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";

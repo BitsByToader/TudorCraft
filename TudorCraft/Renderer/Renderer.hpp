@@ -67,13 +67,9 @@ public:
     void lookLeft();
 
     std::mutex m_gpuMutex;
-    
-    // Change me
-    simd::float3 m_playerPos = (simd::float3) { 0.f, 0.f, 0.f };
-    simd::float2 m_centerChunk = (simd::float2) { 0.f, 0.f };
-    
+    simd::float3 cameraPosition = (simd::float3) { 0.f, 0.f, 0.f };
 private:
-    static Renderer *globalObject;
+    static Renderer *m_sharedObject;
     
     // MARK: Private methods
     void loadMetal();
@@ -120,17 +116,11 @@ private:
     /// Buffer for the fragment shader to store the textures inside of
     MTL::Buffer* m_fragmentShaderArgBuffer;
     
-    /// Number of vertices
-    NS::UInteger m_verticesCount;
-    
     /// Window size
     vector_uint2 m_windowSize;
     
     /// The atlas we're using to load the textures from.
     TextureAtlas *m_atlas;
-    
-    /// Frame we're currently working on
-    int m_frame;
     
     float m_yawAngle = 0.f;
     float m_pitchAngle = 0.f;

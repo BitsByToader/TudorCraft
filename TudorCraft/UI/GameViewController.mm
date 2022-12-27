@@ -7,6 +7,7 @@
 
 #import "GameViewController.h"
 
+#include "Engine.hpp"
 #include "Renderer.hpp"
 #include "World.hpp"
 #include "TCPClient.hpp"
@@ -14,6 +15,7 @@
 @implementation GameViewController
     MTKView* m_view;
     
+    Engine* m_engine;
     Renderer* m_renderer;
     World* m_world;
     TCPClient* m_client;
@@ -47,9 +49,9 @@
     [super viewDidLoad];
     
     MTLClearColor cc;
-    cc.red = 0.0;
-    cc.blue = 0.0;
-    cc.green = 0.0;
+    cc.red = 0.5;
+    cc.green = 0.83;
+    cc.blue = 1.0;
     cc.alpha = 1.0;
     
     m_view.clearColor = cc;
@@ -58,6 +60,7 @@
     m_view.colorPixelFormat = MTLPixelFormat::MTLPixelFormatBGRA8Unorm_sRGB;
     
     m_view.device = MTLCreateSystemDefaultDevice();
+    m_engine = Engine::shared();
     m_renderer = Renderer::shared();
     m_world = World::shared();
     
@@ -76,6 +79,10 @@
 }
 
 - (void)drawInMTKView:(nonnull MTKView *)view {
+    // Update the world.
+    m_engine->updateGame();
+    
+    // Draw world to screen.
     m_renderer->draw((__bridge MTL::RenderPassDescriptor *) m_view.currentRenderPassDescriptor,
                      (__bridge MTL::Drawable *) m_view.currentDrawable);
 }
@@ -96,91 +103,31 @@
     }
 }
 
-- (void) keyPress: (UInt16) key {
-    switch (key) {
-        case 13:
-//            NSLog(@"W");
-            m_renderer->forward();
-            break;
-            
-        case 0:
-//            NSLog(@"A");
-            m_renderer->left();
-            break;
-            
-        case 1:
-//            NSLog(@"S");
-            m_renderer->backward();
-            break;
-            
-        case 2:
-//            NSLog(@"D");
-            m_renderer->right();
-            break;
-            
-        case 48:
-//            NSLog(@"Tab");
-            m_renderer->down();
-            break;
-            
-        case 49:
-//            NSLog(@"Space");
-            m_renderer->up();
-            break;
-            
-        case 53:
-//            NSLog(@"Esc");
-            gamePaused = !gamePaused;
-            m_view.paused = gamePaused;
+- (void) pressedKey: (UInt16) key {
+    m_engine->keyDown(key);
+};
+
+- (void) releasedKey: (UInt16) key {
+    if ( key == 53 ) {
+        gamePaused = !gamePaused;
+        m_view.paused = gamePaused;
 #if TARGET_OS_IPHONE
 #else
-            CGAssociateMouseAndMouseCursorPosition(gamePaused);
-            if ( !gamePaused ) {
-                CGDisplayHideCursor(kCGDirectMainDisplay);
-            } else {
-                CGDisplayShowCursor(kCGDirectMainDisplay);
-            }
+        CGAssociateMouseAndMouseCursorPosition(gamePaused);
+        if ( !gamePaused ) {
+            CGDisplayHideCursor(kCGDirectMainDisplay);
+        } else {
+            CGDisplayShowCursor(kCGDirectMainDisplay);
+        }
 #endif
-            break;
-            
-        case 123:
-//            NSLog(@"LeftArrow");
-            m_renderer->lookLeft();
-            break;
-            
-        case 124:
-//            NSLog(@"RightArrow");
-            m_renderer->lookRight();
-            break;
-            
-        case 125:
-//            NSLog(@"DownArrow");
-            m_renderer->lookDown();
-            break;
-            
-        case 126:
-//            NSLog(@"UpArrow");
-            m_renderer->lookUp();
-            break;
-            
-        default:
-            break;
+    } else {
+        m_engine->keyUp(key);
     }
 };
 
 - (void) mouseMoved: (CGFloat) x newY: (CGFloat) y {
     if ( !gamePaused ) {
-        if ( x > 0 ) {
-            m_renderer->lookRight();
-        } else if ( x < 0 ){
-            m_renderer->lookLeft();
-        }
-        
-        if ( y < 0 ) {
-            m_renderer->lookUp();
-        } else if ( y > 0 ) {
-            m_renderer->lookDown();
-        }
+        m_engine->mouseMoved(x, y);
     }
 };
 

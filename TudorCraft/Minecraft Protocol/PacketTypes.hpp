@@ -42,7 +42,7 @@ enum class ClientBoundPlayingPacketTypes: int {
     UnloadChunk                     = 0x1C,
     GameEvent                       = 0x1D,
     KeepAlive                       = 0x20, // ~~ IMPLEMENTED
-    ChunkData                       = 0x21,
+    ChunkData                       = 0x21, // ~~ IMPLEMENTED (mostly)
     WorldEvent                      = 0x22,
     Particle                        = 0x23,
     Login                           = 0x25,

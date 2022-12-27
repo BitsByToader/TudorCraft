@@ -240,7 +240,7 @@ void SynchronizePlayerPositionPacket::read(TCPStream *stream) {
     *stream >> (int8_t *) &m_dismountVehicle;
     
     AAPL_PRINT("Spawn:", m_x, m_y, m_z);
-    Renderer::shared()->m_playerPos = { (float)m_x, (float)m_y, (float)m_z };
+    Renderer::shared()->cameraPosition = { (float)m_x, (float)m_y, (float)m_z };
 };
 
 //MARK: - Center Chunk Packet
@@ -249,7 +249,7 @@ void CenterChunkPacket::read(TCPStream *stream) {
     *stream >> &m_chunkZ;
     
     AAPL_PRINT("Center:", m_chunkX.value(), m_chunkZ.value());
-    Renderer::shared()->m_centerChunk = { (float)m_chunkX.value(), (float)m_chunkZ.value() };
+    World::shared()->centerChunk = { (float)m_chunkX.value(), (float)m_chunkZ.value() };
 };
 
 //MARK: - Chunk Data Packet
@@ -324,7 +324,7 @@ void ChunkDataPacket::read(TCPStream *stream) {
 
 void ChunkDataPacket::updateGame() {
     simd::float2 pos = { (float)m_chunkX, (float)m_chunkZ };
-    simd::float2 center = Renderer::shared()->m_centerChunk;
+    simd::float2 center = World::shared()->centerChunk;
     
     if ( simd::distance(center, pos) > 3 )
         return;

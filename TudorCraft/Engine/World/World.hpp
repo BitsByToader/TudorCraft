@@ -11,6 +11,7 @@
 #include <unordered_map>
 #include <tuple>
 #include <functional>
+#include <simd/simd.h>
 
 #include "Math3D.hpp"
 #include "BlockState.hpp"
@@ -67,8 +68,10 @@ public:
     
     void calculateMeshes();
     
+    simd::float2 centerChunk = (simd::float2) { 0.f, 0.f };
+    
 private:
-    static World *m_globalObject;
+    static World *m_sharedObject;
     
 #warning Question: Use an array instead to reduce overhead when accesing a block in the world?
     std::unordered_map<Tuple3D, Chunk *, Tuple3DHash> m_chunks;

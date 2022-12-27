@@ -22,13 +22,13 @@ World::~World() {
     //TODO: Also reset the instance data buffer to blank out the renderer?
 }
 
-World *World::m_globalObject = nullptr;
+World *World::m_sharedObject = nullptr;
 World *World::shared() {
-    if ( m_globalObject == nullptr ) {
-        m_globalObject = new World();
+    if ( m_sharedObject == nullptr ) {
+        m_sharedObject = new World();
     }
     
-    return m_globalObject;
+    return m_sharedObject;
 }
 
 #warning Find a faster way to calculate these correctly
