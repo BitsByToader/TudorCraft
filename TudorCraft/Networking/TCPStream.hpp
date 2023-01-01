@@ -45,7 +45,6 @@ public:
     size_t readBytes(uint8_t *buffer, size_t length) override;
     size_t writeBytes(uint8_t *buffer, size_t length) override;
     
-#warning "Question: Pointer vs Reference?"
     //MARK: - << and >> Operators
     template<class T>
     const TCPStream &operator>>(T *value);

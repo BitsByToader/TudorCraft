@@ -19,11 +19,10 @@
 #define CA_PRIVATE_IMPLEMENTATION
 #include <QuartzCore/QuartzCore.hpp>
 
-#include "AAPLUtilities.h"
-
 #include "Renderer.hpp"
-#include "World.hpp"
 #include "Chunk.hpp"
+#include "EntityComponent.hpp"
+#include "AAPLUtilities.h"
 #include "ShaderTypes.h"
 #include "Math3D.hpp"
 
@@ -58,17 +57,11 @@ Renderer::~Renderer() {
     m_pipelineState->release();
     m_commandQueue->release();
     m_device->release();
-    m_vertices->release();
-    m_indexBuffer->release();
+    m_blockFaceVertices->release();
+    m_blockFaceIndexBuffer->release();
     m_heap->release();
     m_depthState->release();
-    
-//    for ( int i = 0; i < MAX_FRAMES_IN_FLIGHT; i++ ) {
-//        m_instanceDataBuffers[i]->release();
-//    }
-    
     m_instanceDataBuffer->release();
-    
     for ( int i = 0; i < 3; i++ ) {
         m_texture[i]->release();
     }
@@ -100,19 +93,70 @@ void Renderer::loadMetal() {
     };
     
     // MARK: Create buffers
-    m_vertices = m_device->newBuffer(quadVertices, sizeof(quadVertices), MTL::ResourceStorageModeShared);
-    m_indexBuffer = m_device->newBuffer(indices, sizeof(indices), MTL::ResourceStorageModeShared);
+    m_blockFaceVertices = m_device->newBuffer(quadVertices, // Contents
+                                              sizeof(quadVertices), // Length
+                                              MTL::ResourceStorageModeShared); // Mode
+    m_blockFaceIndexBuffer = m_device->newBuffer(indices,
+                                                 sizeof(indices),
+                                                 MTL::ResourceStorageModeShared);
+    m_instanceDataBuffer = m_device->newBuffer(10 * 24 * 16 * 16 * 16 * 6 * sizeof(InstanceData), // Length
+                                               MTL::ResourceStorageModeShared); // Mode
+    
+    Vertex cubeVertices[] =
+    {
+        //                                         Texture
+        //   Positions           Normals         Coordinates
+        { { -s, -s, +s }, {  0.f,  0.f,  1.f }, { 0.f, 1.f } }, //  0
+        { { +s, -s, +s }, {  0.f,  0.f,  1.f }, { 1.f, 1.f } }, //  1
+        { { +s, +s, +s }, {  0.f,  0.f,  1.f }, { 1.f, 0.f } }, //  2
+        { { -s, +s, +s }, {  0.f,  0.f,  1.f }, { 0.f, 0.f } }, //  3
+
+        { { +s, -s, +s }, {  1.f,  0.f,  0.f }, { 0.f, 1.f } }, //  4
+        { { +s, -s, -s }, {  1.f,  0.f,  0.f }, { 1.f, 1.f } }, //  5
+        { { +s, +s, -s }, {  1.f,  0.f,  0.f }, { 1.f, 0.f } }, //  6
+        { { +s, +s, +s }, {  1.f,  0.f,  0.f }, { 0.f, 0.f } }, //  7
+
+        { { +s, -s, -s }, {  0.f,  0.f, -1.f }, { 0.f, 1.f } }, //  8
+        { { -s, -s, -s }, {  0.f,  0.f, -1.f }, { 1.f, 1.f } }, //  9
+        { { -s, +s, -s }, {  0.f,  0.f, -1.f }, { 1.f, 0.f } }, // 10
+        { { +s, +s, -s }, {  0.f,  0.f, -1.f }, { 0.f, 0.f } }, // 11
+
+        { { -s, -s, -s }, { -1.f,  0.f,  0.f }, { 0.f, 1.f } },
+        { { -s, -s, +s }, { -1.f,  0.f,  0.f }, { 1.f, 1.f } },
+        { { -s, +s, +s }, { -1.f,  0.f,  0.f }, { 1.f, 0.f } },
+        { { -s, +s, -s }, { -1.f,  0.f,  0.f }, { 0.f, 0.f } },
+
+        { { -s, +s, +s }, {  0.f,  1.f,  0.f }, { 0.f, 1.f } },
+        { { +s, +s, +s }, {  0.f,  1.f,  0.f }, { 1.f, 1.f } },
+        { { +s, +s, -s }, {  0.f,  1.f,  0.f }, { 1.f, 0.f } },
+        { { -s, +s, -s }, {  0.f,  1.f,  0.f }, { 0.f, 0.f } },
+
+        { { -s, -s, -s }, {  0.f, -1.f,  0.f }, { 0.f, 1.f } },
+        { { +s, -s, -s }, {  0.f, -1.f,  0.f }, { 1.f, 1.f } },
+        { { +s, -s, +s }, {  0.f, -1.f,  0.f }, { 1.f, 0.f } },
+        { { -s, -s, +s }, {  0.f, -1.f,  0.f }, { 0.f, 0.f } }
+    };
+    
+    uint16_t cubeIndices[] = {
+        0,  1,  2,  2,  3,  0, /* front */
+        4,  5,  6,  6,  7,  4, /* right */
+        8,  9, 10, 10, 11,  8, /* back */
+       12, 13, 14, 14, 15, 12, /* left */
+       16, 17, 18, 18, 19, 16, /* top */
+       20, 21, 22, 22, 23, 20, /* bottom */
+    };
+    
+    m_cubeVertices = m_device->newBuffer(cubeVertices, // Contents
+                                         sizeof(cubeVertices), // Length
+                                         MTL::ResourceStorageModeShared); // Mode
+    m_cubeIndexBuffer = m_device->newBuffer(cubeIndices,
+                                            sizeof(cubeIndices),
+                                            MTL::ResourceStorageModeShared);
+    m_cubeInstanceDatBuffer = m_device->newBuffer(5 * sizeof(InstanceData), // Length
+                                                  MTL::ResourceStorageModeShared); // Mode
     
     // Create the buffer and the perspective matrix once
     m_cameraDataBuffer = m_device->newBuffer(sizeof(CameraData), MTL::ResourceStorageModeShared);
-    
-    // Create a buffer for each frame we can work independently
-//    for ( int i = 0; i < MAX_FRAMES_IN_FLIGHT; i++ ) {
-//        // number of blocks times the number of faces we can possibly have
-//        m_instanceDataBuffers[i] = m_device->newBuffer(16 * 16 * 16 * 6 * sizeof(InstanceData), MTL::ResourceStorageModeShared);
-//    }
-    
-    m_instanceDataBuffer = m_device->newBuffer(10 * 24 * 16 * 16 * 16 * 6 * sizeof(InstanceData), MTL::ResourceStorageModeShared);
     
     createHeap();
     moveResourcesToHeap();
@@ -284,7 +328,9 @@ void Renderer::windowSizeWillChange(unsigned int width, unsigned int height) {
 };
 
 // MARK: - Draw method
-void Renderer::draw(MTL::RenderPassDescriptor *currentRPD, MTL::Drawable* currentDrawable) {
+void Renderer::draw(std::vector<std::shared_ptr<Entity>>& entities,
+                    MTL::RenderPassDescriptor *currentRPD,
+                    MTL::Drawable* currentDrawable) {
     if ( m_instanceCount == 0 ) {
         return;
     }
@@ -303,9 +349,22 @@ void Renderer::draw(MTL::RenderPassDescriptor *currentRPD, MTL::Drawable* curren
         m_gpuMutex.unlock();
     });
     
+    int cubeCount = 0;
+    InstanceData *cubes = reinterpret_cast<InstanceData *>(m_cubeInstanceDatBuffer->contents());
+    for ( auto entity: entities ) {
+        for ( auto component: entity->components() ) {
+            cubes[cubeCount].transform = entity->transformMatrix() * component->transformMatrix();
+            cubes[cubeCount].normalTransform = Math3D::discardTranslation(cubes[cubeCount].transform);
+            cubes[cubeCount].textureId = 2;
+            
+            cubeCount++;
+        }
+    }
+    
     // MARK: World transformations
     CameraData *cameraData = reinterpret_cast<CameraData *>(m_cameraDataBuffer->contents());
-    cameraData->worldTranform = Math3D::makeXRotate4x4(m_pitchAngle) * Math3D::makeYRotate4x4(m_yawAngle) * Math3D::makeTranslate( cameraPosition );
+#warning cameraPosition should be negated. Fix the movement functions as well
+    cameraData->worldTranform = Math3D::makeXRotate4x4(-cameraPitch) * Math3D::makeYRotate4x4(-cameraYaw) * Math3D::makeTranslate( -cameraPosition );
     cameraData->worldNormalTranform = Math3D::discardTranslation(cameraData->worldTranform);
     
     // MARK: Configure draw command
@@ -317,17 +376,16 @@ void Renderer::draw(MTL::RenderPassDescriptor *currentRPD, MTL::Drawable* curren
         MTL::Viewport viewPort = {0.0, 0.0, (double) m_windowSize.x, (double) m_windowSize.y, 0.0, 1.0};
         renderEncoder->setViewport(viewPort);
         
-        // Indicate to Metal that the textures will be loaded from the GPU heap
+        // Indicate to Metal that a GPU heap will be used.
         renderEncoder->useHeap(m_heap);
         
         renderEncoder->setRenderPipelineState(m_pipelineState);
         renderEncoder->setDepthStencilState(m_depthState);
         
-        // Pass in the parameter data.
-        renderEncoder->setVertexBuffer(m_vertices, 0, VertexInputIndexVertices);
+        // Pass in the parameter data for cube faces.
+        renderEncoder->setVertexBuffer(m_blockFaceVertices, 0, VertexInputIndexVertices);
         renderEncoder->setVertexBuffer(m_instanceDataBuffer, 0, VertexInputIndexInstanceData);
         renderEncoder->setVertexBuffer(m_cameraDataBuffer, 0, VertexInputIndexCameraData);
-        // TODO: This might need some optimization?
         renderEncoder->setFragmentBuffer(m_fragmentShaderArgBuffer, 0, FragmentInputIndexTextures);
         renderEncoder->setFragmentBuffer(m_cameraDataBuffer, 0, FragmentInputIndexCameraData);
         
@@ -335,13 +393,25 @@ void Renderer::draw(MTL::RenderPassDescriptor *currentRPD, MTL::Drawable* curren
         renderEncoder->setCullMode( MTL::CullModeBack );
         renderEncoder->setFrontFacingWinding( MTL::Winding::WindingCounterClockwise );
         
-        // Draw our cubes.
+        // Draw our cube faces
         renderEncoder->drawIndexedPrimitives(MTL::PrimitiveType::PrimitiveTypeTriangle, // Primitive type
                                              6, // Index count
                                              MTL::IndexType::IndexTypeUInt16, // Index type
-                                             m_indexBuffer, // Index buffer
+                                             m_blockFaceIndexBuffer, // Index buffer
                                              0, // Index buffer offset
                                              m_instanceCount); // Instance count
+        
+        // Reencode paramaters for cube drawing
+        renderEncoder->setVertexBuffer(m_cubeVertices, 0, VertexInputIndexVertices);
+        renderEncoder->setVertexBuffer(m_cubeInstanceDatBuffer, 0, VertexInputIndexInstanceData);
+        
+        // Draw our cubes
+        renderEncoder->drawIndexedPrimitives(MTL::PrimitiveType::PrimitiveTypeTriangle, // Primitive type
+                                             36, // Index count
+                                             MTL::IndexType::IndexTypeUInt16, // Index type
+                                             m_cubeIndexBuffer, // Index buffer
+                                             0, // Index buffer offset
+                                             cubeCount); // Instance count
         
         renderEncoder->endEncoding();
         commandBuffer->presentDrawable(currentDrawable);
@@ -351,74 +421,6 @@ void Renderer::draw(MTL::RenderPassDescriptor *currentRPD, MTL::Drawable* curren
     
     pPool->release();
 }
-
-// MARK: - Player moving methods
-void Renderer::forward() {
-    cameraPosition.x += 2*sinf(-m_yawAngle);
-    
-    cameraPosition.z += 2*cosf(m_yawAngle) * cosf(m_pitchAngle);
-    cameraPosition.y += 2*cosf(m_yawAngle) * sinf(-m_pitchAngle);
-};
-void Renderer::backward() {
-    cameraPosition.x -= 2*sinf(-m_yawAngle);
-    
-    cameraPosition.z -= 2*cosf(m_yawAngle) * cosf(m_pitchAngle);
-    cameraPosition.y -= 2*cosf(m_yawAngle) * sinf(-m_pitchAngle);
-};
-void Renderer::left() {
-    cameraPosition.x -= 2*-cosf(m_yawAngle);
-    cameraPosition.z -= 2*sinf(-m_yawAngle);
-};
-void Renderer::right() {
-    cameraPosition.x += 2*-cosf(m_yawAngle);
-    cameraPosition.z += 2*sinf(-m_yawAngle);
-};
-
-void Renderer::up() {
-    cameraPosition.y -= 2.f;
-    
-//    m_gpuMutex.lock();
-//    World *w = World::shared();
-//    w->placeBlockAt(32, 0, 0, nullptr);
-//    m_gpuMutex.unlock();
-};
-
-void Renderer::down() {
-    cameraPosition.y += 2.f;
-    
-//    m_gpuMutex.lock();
-//    World *w = World::shared();
-//    w->placeBlockAt(32, 0, 0, BlockState::GrassBlock());
-//    m_gpuMutex.unlock();
-};
-
-void Renderer::lookUp() {
-    if ( m_pitchAngle < M_PI/2) {
-        m_pitchAngle += 0.05f;
-    }
-};
-
-void Renderer::lookDown() {
-    if ( m_pitchAngle > -M_PI/2 ) {
-        m_pitchAngle -= 0.05f;
-    }
-};
-
-void Renderer::lookRight() {
-    if ( m_yawAngle == 2*M_PI ) {
-        m_yawAngle = 0;
-    } else {
-        m_yawAngle += 0.05f;
-    }
-};
-
-void Renderer::lookLeft() {
-    if (m_yawAngle == -2*M_PI ) {
-        m_yawAngle = 0;
-    } else {
-        m_yawAngle -= 0.05f;
-    }
-};
 
 //MARK: - InstanceDataBuffer getter
 InstanceData *Renderer::instanceBuffer() { 

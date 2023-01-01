@@ -308,7 +308,6 @@ const TCPStream &TCPStream::operator>>(std::string *value) {
 
     readBytes(m_recvBuffer, length.value());
     // Is the string deallocator called here for the previous value???
-#warning "THIS NEEDS A REWRITE PRONTO"
     *value = std::string((char *)m_recvBuffer, length.value());
     flushInput();
     

@@ -79,12 +79,9 @@
 }
 
 - (void)drawInMTKView:(nonnull MTKView *)view {
-    // Update the world.
-    m_engine->updateGame();
-    
-    // Draw world to screen.
-    m_renderer->draw((__bridge MTL::RenderPassDescriptor *) m_view.currentRenderPassDescriptor,
-                     (__bridge MTL::Drawable *) m_view.currentDrawable);
+    // Update the game.
+    m_engine->updateGame((__bridge MTL::RenderPassDescriptor *) m_view.currentRenderPassDescriptor,
+                         (__bridge MTL::Drawable *) m_view.currentDrawable);
 }
 
 - (void)mtkView:(nonnull MTKView *)view drawableSizeWillChange:(CGSize)size {

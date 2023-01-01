@@ -4,7 +4,7 @@
 //
 //  Created by Tudor Ifrim on 02.12.2022.
 //
-#warning Question: Each packet type in its own file?
+
 #ifndef Packet_hpp
 #define Packet_hpp
 
@@ -55,7 +55,6 @@ public:
         return (int)HandshakingPacketTypes::Handshake;
     };
     
-#warning Question: Is it be so bad for these to be public?
 private:
     MCP::VarInt m_protocolVersion;
     std::string m_serverAddress;

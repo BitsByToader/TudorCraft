@@ -12,6 +12,7 @@
 #include "Renderer.hpp"
 #include "ShaderTypes.h"
 #include "World.hpp"
+#include "Faces.hpp"
 
 #define BLOCK_SIZE 10.f // 1 meter
 #define BLOCKS_NUM_X 16
@@ -19,20 +20,7 @@
 #define BLOCKS_NUM_Z 16
 #define BLOCKS_NUM_TOTAL 16*16*16
 
-
-//MARK: Faces enum
-/// Maps each face of the block to an index in the `faceIndices` array of the `Block` struct.
-enum Faces: unsigned char {
-    Front   = 0,
-    Left    = 1,
-    Back    = 2,
-    Right   = 3,
-    Bottom  = 4,
-    Top     = 5
-};
-
 //MARK: - Block struct
-#warning Question: Class or struct here?
 ///  Basic struct which holds the state and the indices for the instance data.
 struct Block {
     /// The state of the block

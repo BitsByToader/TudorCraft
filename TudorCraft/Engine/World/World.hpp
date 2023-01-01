@@ -73,7 +73,6 @@ public:
 private:
     static World *m_sharedObject;
     
-#warning Question: Use an array instead to reduce overhead when accesing a block in the world?
     std::unordered_map<Tuple3D, Chunk *, Tuple3DHash> m_chunks;
 };
 

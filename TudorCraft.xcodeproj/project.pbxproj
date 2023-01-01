@@ -33,6 +33,8 @@
 		8B9B832E2915951E00FB1030 /* Shaders.metal in Sources */ = {isa = PBXBuildFile; fileRef = 8B9B832D2915951E00FB1030 /* Shaders.metal */; };
 		8BC709C52938FD010031B28A /* TCPClient.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8BC709C32938FD010031B28A /* TCPClient.cpp */; };
 		8BC709C829391CAB0031B28A /* VarInt.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8BC709C629391CAB0031B28A /* VarInt.cpp */; };
+		8BDE1219295D9EA8004ADE82 /* Entity.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8BDE1217295D9EA8004ADE82 /* Entity.cpp */; };
+		8BDE121C295D9ECF004ADE82 /* EntityComponent.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8BDE121A295D9ECF004ADE82 /* EntityComponent.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -83,6 +85,11 @@
 		8BC709C42938FD010031B28A /* TCPClient.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = TCPClient.hpp; sourceTree = "<group>"; };
 		8BC709C629391CAB0031B28A /* VarInt.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = VarInt.cpp; sourceTree = "<group>"; };
 		8BC709C729391CAB0031B28A /* VarInt.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = VarInt.hpp; sourceTree = "<group>"; };
+		8BDE1217295D9EA8004ADE82 /* Entity.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Entity.cpp; sourceTree = "<group>"; };
+		8BDE1218295D9EA8004ADE82 /* Entity.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = Entity.hpp; sourceTree = "<group>"; };
+		8BDE121A295D9ECF004ADE82 /* EntityComponent.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = EntityComponent.cpp; sourceTree = "<group>"; };
+		8BDE121B295D9ECF004ADE82 /* EntityComponent.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = EntityComponent.hpp; sourceTree = "<group>"; };
+		8BDE121D295DA47F004ADE82 /* Faces.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = Faces.hpp; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -231,7 +238,9 @@
 		8B672AE429281C0500E111B1 /* Engine */ = {
 			isa = PBXGroup;
 			children = (
+				8BDE121D295DA47F004ADE82 /* Faces.hpp */,
 				8B3ED5D82937D5000071F51E /* World */,
+				8BDE1216295D9E8C004ADE82 /* Entity */,
 				8B0005D8295B0A4A00B4DE9D /* Engine.cpp */,
 				8B0005D9295B0A4A00B4DE9D /* Engine.hpp */,
 			);
@@ -247,6 +256,17 @@
 				8B0479F8293A7D9A00284659 /* TCPStream.hpp */,
 			);
 			path = Networking;
+			sourceTree = "<group>";
+		};
+		8BDE1216295D9E8C004ADE82 /* Entity */ = {
+			isa = PBXGroup;
+			children = (
+				8BDE1217295D9EA8004ADE82 /* Entity.cpp */,
+				8BDE1218295D9EA8004ADE82 /* Entity.hpp */,
+				8BDE121A295D9ECF004ADE82 /* EntityComponent.cpp */,
+				8BDE121B295D9ECF004ADE82 /* EntityComponent.hpp */,
+			);
+			path = Entity;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -333,6 +353,8 @@
 				8B1FF3C12913142500A9C095 /* Renderer.cpp in Sources */,
 				8B0479F9293A7D9A00284659 /* TCPStream.cpp in Sources */,
 				8B1FF3B029130D5500A9C095 /* ContentView.swift in Sources */,
+				8BDE1219295D9EA8004ADE82 /* Entity.cpp in Sources */,
+				8BDE121C295D9ECF004ADE82 /* EntityComponent.cpp in Sources */,
 				8B53B3E6291697AC00713715 /* TextureAtlas.cpp in Sources */,
 				8B672AED29281C7200E111B1 /* World.cpp in Sources */,
 				8B2B7A902917C51800916671 /* Math3D.cpp in Sources */,

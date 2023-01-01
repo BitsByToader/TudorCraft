@@ -9,10 +9,12 @@
 #define Renderer_hpp
 
 #include <mutex>
+#include <memory>
 
 #include <Metal/Metal.hpp>
 #include <simd/simd.h>
 #include "ShaderTypes.h"
+#include "Entity.hpp"
 #include "TextureAtlas.hpp"
 
 class Renderer {
@@ -36,9 +38,12 @@ public:
     
     /// Tells the renderer to draw in the drawable using the render descriptor.
     /// - Parameters:
+    ///   - entities: The entities to draw along with the world.
     ///   - currentRPD: Render pass descriptor to use.
     ///   - currentDrawable: Drawable to draw in.
-    void draw(MTL::RenderPassDescriptor *currentRPD, MTL::Drawable* currentDrawable);
+    void draw(std::vector<std::shared_ptr<Entity>>& entities,
+              MTL::RenderPassDescriptor *currentRPD,
+              MTL::Drawable* currentDrawable);
     
     
     /// Getter for `m_instanceDataBuffer`.
@@ -53,21 +58,11 @@ public:
     /// This method automatically decreases `m_instanceCount`.
     /// - Parameter index: The element's index to remove from the buffer.
     void removeInstanceAt(int index);
-    
-    void forward();
-    void backward();
-    void left();
-    void right();
-    void up();
-    void down();
-    
-    void lookUp();
-    void lookDown();
-    void lookRight();
-    void lookLeft();
 
     std::mutex m_gpuMutex;
     simd::float3 cameraPosition = (simd::float3) { 0.f, 0.f, 0.f };
+    float cameraYaw = 0.f;
+    float cameraPitch = 0.f;
 private:
     static Renderer *m_sharedObject;
     
@@ -99,13 +94,16 @@ private:
     int m_textureCount = 3;
     
     /// Vertex data buffer
-    MTL::Buffer *m_vertices;
+    MTL::Buffer *m_blockFaceVertices;
+    MTL::Buffer *m_cubeVertices;
     
     /// Indices buffer
-    MTL::Buffer* m_indexBuffer;
+    MTL::Buffer* m_blockFaceIndexBuffer;
+    MTL::Buffer* m_cubeIndexBuffer;
     
     /// Instance data buffer
     MTL::Buffer* m_instanceDataBuffer;
+    MTL::Buffer* m_cubeInstanceDatBuffer;
     
     /// Number of instances in any of the data buffers
     int m_instanceCount = 0;
@@ -121,9 +119,6 @@ private:
     
     /// The atlas we're using to load the textures from.
     TextureAtlas *m_atlas;
-    
-    float m_yawAngle = 0.f;
-    float m_pitchAngle = 0.f;
 };
 
 #endif /* Renderer_hpp */

@@ -9,6 +9,7 @@
 
 #include "TCPStream.hpp"
 
+#include "Engine.hpp"
 #include "World.hpp"
 #include "Chunk.hpp"
 
@@ -240,7 +241,8 @@ void SynchronizePlayerPositionPacket::read(TCPStream *stream) {
     *stream >> (int8_t *) &m_dismountVehicle;
     
     AAPL_PRINT("Spawn:", m_x, m_y, m_z);
-    Renderer::shared()->cameraPosition = { (float)m_x, (float)m_y, (float)m_z };
+    
+    Engine::shared()->addEntity((float)m_x*10, (float)m_y*10, (float)m_z*10);
 };
 
 //MARK: - Center Chunk Packet
