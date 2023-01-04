@@ -7,6 +7,8 @@
 
 #include "Engine.hpp"
 
+#include "AAPLUtilities.h"
+
 //MARK: - Boilerplate
 Engine *Engine::m_sharedObject = nullptr;
 Engine* Engine::shared() {
@@ -92,33 +94,49 @@ void Engine::checkInput() {
     simd::float3 dir = {-2 * cos(pitch) * sin(yaw),
                         -2 * sin(pitch),
                         -2 * cos(pitch) * cos(yaw)};
+    bool playerMoved = false;
     
     // Check keyboard
     if ( m_goingForward ) {
         pos += dir;
+        
+        playerMoved = true;
     }
     
     if ( m_goingLeft ) {
-        pos += dir * Math3D::makeYRotate3x3(-M_PI/2);
+        pos.x += (dir * Math3D::makeYRotate3x3(-M_PI/2)).x;
+        pos.z += (dir * Math3D::makeYRotate3x3(-M_PI/2)).z;
+        
+        playerMoved = true;
     }
     
     if ( m_goingRight ) {
-        pos += dir * Math3D::makeYRotate3x3(M_PI/2);
+        pos.x += (dir * Math3D::makeYRotate3x3(M_PI/2)).x;
+        pos.z += (dir * Math3D::makeYRotate3x3(M_PI/2)).z;
+        
+        playerMoved = true;
     }
     
     if ( m_goingBackward ) {
         pos -= dir;
+        
+        playerMoved = true;
     }
     
     if ( m_goingUp ) {
         pos.y += 2.f;
+        
+        playerMoved = true;
     }
     
     if ( m_goingDown ) {
         pos.y -= 2.f;
+        
+        playerMoved = true;
     }
     
-    m_player->setPosition(pos.x, pos.y, pos.z);
+    if ( playerMoved )
+        m_player->setPosition(pos.x, pos.y, pos.z);
     
     simd::float3 temp = m_player->rotation();
     m_player->setRotation(temp.x, yaw);
@@ -195,30 +213,8 @@ void Engine::mouseMoved(float x, float y) {
 };
 
 void Engine::addEntity(float x, float y, float z) {
-    // Set up the player
-    int indices[] = {2, 2, 2, 2, 2, 2};
-    EntityComponent *bottom = new EntityComponent;
-    bottom->setRelativePosition(0.f, 0.f, 0.f);
-    bottom->setSize(5.f, 12.f, 2.5f);
-    bottom->setRotation(0.f, 0.f, 0.f);
-    bottom->setTextures(indices);
     
-    EntityComponent *top = new EntityComponent;
-    top->setRelativePosition(0.f, 12.f, 2.5f);
-    top->setSize(5.f, 5.f, 5.f);
-    top->setRotation(0.f, 0.f, 0.f);
-    top->setTextures(indices);
-    
-    std::shared_ptr<Entity> player = std::make_shared<Entity>();
-    
-    player->addComponent(bottom);
-    player->addComponent(top);
-    player->cameraBoundComponent = top;
-    
-    player->setRotation(0.f, 0.f);
-    player->setPosition(x,y,z);
-    
-    player->m_cameraY = 1.f * 10; // Convert to render coordinates
+    std::shared_ptr<PlayerEntity> player = std::make_shared<PlayerEntity>(x, y, z);
     
     m_entities.push_back(player);
     m_cameraBoundEntity = player.get();

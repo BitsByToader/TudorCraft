@@ -26,6 +26,7 @@ template const TCPStream &TCPStream::operator>>(double *value);
 template const TCPStream &TCPStream::operator>>(float *value);
 template const TCPStream &TCPStream::operator>>(int *value);
 template const TCPStream &TCPStream::operator>>(uint8_t *value);
+template const TCPStream &TCPStream::operator>>(uint64_t *value);
 
 TCPStream::TCPStream(MCP::ConnectionState *state, std::string serverAddress, int port) {
     m_connectionState = state;
@@ -209,6 +210,18 @@ const TCPStream &TCPStream::operator>>(MCP::Packet *packet) {
                 packet = chunkDataPacket;
                 
                 chunkDataPacket->updateGame();
+                
+                break;
+            }
+                
+            case (int) MCP::ClientBoundPlayingPacketTypes::BlockUpdate: {
+                std::cout << "BlockUpdate packet" << std::endl;
+                
+                MCP::BlockUpdatePacket *blockUpdatePacket = new MCP::BlockUpdatePacket;
+                blockUpdatePacket->read(this);
+                packet = blockUpdatePacket;
+                
+                blockUpdatePacket->updateGame();
                 
                 break;
             }

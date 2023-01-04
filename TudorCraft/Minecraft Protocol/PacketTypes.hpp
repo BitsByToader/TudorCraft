@@ -34,7 +34,7 @@ enum class ClientBoundPlayingPacketTypes: int {
     BlockDestroyStage               = 0x06,
     BlockEntityData                 = 0x07,
     BlockAction                     = 0x08,
-    BlockUpdate                     = 0x09,
+    BlockUpdate                     = 0x09, // ~~ IMPLEMENTED
     ChangeDifficulty                = 0x0B,
     PlaySoundEffect                 = 0x17,
     Disconnect                      = 0x19,

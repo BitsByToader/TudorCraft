@@ -42,8 +42,7 @@ std::vector<EntityComponent *> Entity::components() {
 };
 
 simd::float3 Entity::cameraPosition() {
-#warning Camera related change needed here.
-    return { (m_x + m_cameraX), (m_y + m_cameraY), (m_z + m_cameraZ) };
+    return { m_x + m_cameraX, m_y + m_cameraY, m_z + m_cameraZ };
 };
 
 simd::float3 Entity::position() {

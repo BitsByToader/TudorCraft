@@ -273,12 +273,12 @@ void Chunk::placeBlockAt(int x, int y, int z, BlockState *state, Renderer *rende
         float4x4 blockPositionTranslationMatrix;
         
         // Front of block
-        nextBlock = world->getBlockAt(globalX, globalY, globalZ-1);
+        nextBlock = world->getBlockAt(globalX, globalY, (globalZ-1));
         if ( nextBlock != nullptr && nextBlock->state != nullptr ) {
             blockPositionTranslationMatrix=
                 makeTranslate((float3) {globalX*scl,
                                         globalY*scl,
-                                        (globalZ+1)* scl } );
+                                        -(globalZ+1)* scl } );
             
             buffer[*count].transform = blockPositionTranslationMatrix * scale * moveFaceToBack();
             buffer[*count].normalTransform = Math3D::discardTranslation(buffer[*count].transform);
@@ -298,7 +298,7 @@ void Chunk::placeBlockAt(int x, int y, int z, BlockState *state, Renderer *rende
             blockPositionTranslationMatrix =
                 makeTranslate((float3) {(globalX-1)*scl,
                                         globalY*scl,
-                                        globalZ*scl} );
+                                        -globalZ*scl} );
             
             buffer[*count].transform = blockPositionTranslationMatrix * scale * moveFaceToRight();
             buffer[*count].normalTransform = discardTranslation(buffer[*count].transform);
@@ -318,7 +318,7 @@ void Chunk::placeBlockAt(int x, int y, int z, BlockState *state, Renderer *rende
             blockPositionTranslationMatrix =
                 makeTranslate((float3) {globalX*scl,
                                         globalY*scl,
-                                        (globalZ-1)*scl } );
+                                        -(globalZ-1)*scl } );
             
             buffer[*count].transform = blockPositionTranslationMatrix * scale;
             buffer[*count].normalTransform = discardTranslation(buffer[*count].transform);
@@ -338,7 +338,7 @@ void Chunk::placeBlockAt(int x, int y, int z, BlockState *state, Renderer *rende
             blockPositionTranslationMatrix =
                 makeTranslate((float3) {(globalX+1)*scl,
                                         globalY*scl,
-                                        globalZ*scl } );
+                                        -globalZ*scl } );
             
             buffer[*count].transform = blockPositionTranslationMatrix * scale * moveFaceToLeft();
             buffer[*count].normalTransform = discardTranslation(buffer[*count].transform);
@@ -358,7 +358,7 @@ void Chunk::placeBlockAt(int x, int y, int z, BlockState *state, Renderer *rende
             blockPositionTranslationMatrix =
                 makeTranslate((float3) {globalX*scl,
                                         (globalY+1)*scl,
-                                        globalZ*scl} );
+                                        -globalZ*scl} );
             
             buffer[*count].transform = blockPositionTranslationMatrix * scale * moveFaceToBottom();
             buffer[*count].normalTransform = discardTranslation(buffer[*count].transform);
@@ -378,7 +378,7 @@ void Chunk::placeBlockAt(int x, int y, int z, BlockState *state, Renderer *rende
             blockPositionTranslationMatrix =
                 makeTranslate((float3) {globalX*scl,
                                         (globalY-1)*scl,
-                                        globalZ*scl} );
+                                        -globalZ*scl} );
             
             buffer[*count].transform = blockPositionTranslationMatrix * scale * moveFaceToTop();
             buffer[*count].normalTransform = discardTranslation(buffer[*count].transform);

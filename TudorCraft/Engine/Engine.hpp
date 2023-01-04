@@ -14,7 +14,7 @@
 #include "Renderer.hpp"
 #include "World.hpp"
 #include "Entity.hpp"
-#include "EntityComponent.hpp"
+#include "PlayerEntity.hpp"
 
 class Engine {
 public:
@@ -67,7 +67,7 @@ private:
     
     std::vector<std::shared_ptr<Entity>> m_entities;
     Entity* m_cameraBoundEntity = nullptr;
-    Entity* m_player = nullptr;
+    PlayerEntity* m_player = nullptr;
 };
 
 #endif /* Engine_hpp */

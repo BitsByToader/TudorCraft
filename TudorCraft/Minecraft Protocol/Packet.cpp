@@ -242,7 +242,11 @@ void SynchronizePlayerPositionPacket::read(TCPStream *stream) {
     
     AAPL_PRINT("Spawn:", m_x, m_y, m_z);
     
-    Engine::shared()->addEntity((float)m_x*10, (float)m_y*10, (float)m_z*10);
+    // World coordinates -> Render coordinates transform:
+    // We need this because everything needs to be scaled to the blocks' size (10.f).
+    // Also, the minecraft world has decreasing Z coordinates instead of increasing Z coordinates
+    // so negate the Z component of the entity's location.
+    Engine::shared()->addEntity((float)m_x*10, (float)m_y*10, -(float)m_z*10);
 };
 
 //MARK: - Center Chunk Packet
@@ -379,6 +383,24 @@ void ChunkDataPacket::updateGame() {
     }
     
     Renderer::shared()->m_gpuMutex.unlock();
+};
+
+//MARK: - Block Update Packet
+void BlockUpdatePacket::read(TCPStream* stream) {
+    *stream >> &m_blockPosition;
+    *stream >> &m_newState;
+};
+
+void BlockUpdatePacket::updateGame() {
+    int x = ((int64_t) m_blockPosition) >> 38;
+    int y = m_blockPosition << 52 >> 52;
+    int z = m_blockPosition << 26 >> 38;
+    
+    if ( m_newState.value() == 0 ) {
+        World::shared()->placeBlockAt(x, y, z, nullptr);
+    } else {
+        World::shared()->placeBlockAt(x, y, z, BlockState::GrassBlock());
+    }
 };
 
 //MARK: -

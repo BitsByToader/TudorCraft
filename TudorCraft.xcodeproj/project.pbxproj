@@ -23,6 +23,8 @@
 		8B1FF3CA291319E400A9C095 /* MetalKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8B1FF3C9291319E400A9C095 /* MetalKit.framework */; settings = {ATTRIBUTES = (Required, ); }; };
 		8B21827C293BE40C00F7AEFE /* Uuid.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8B21827A293BE40C00F7AEFE /* Uuid.cpp */; };
 		8B2B7A902917C51800916671 /* Math3D.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8B2B7A8E2917C51800916671 /* Math3D.cpp */; };
+		8B3785C2296484F0006CAE4B /* Collidable.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8B3785C0296484F0006CAE4B /* Collidable.cpp */; };
+		8B3785C62964AEFA006CAE4B /* PlayerEntity.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8B3785C42964AEFA006CAE4B /* PlayerEntity.cpp */; };
 		8B5055322927EF29007402FD /* textures.png in Resources */ = {isa = PBXBuildFile; fileRef = 8B5055312927EF29007402FD /* textures.png */; };
 		8B53B3E6291697AC00713715 /* TextureAtlas.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8B53B3E4291697AC00713715 /* TextureAtlas.cpp */; };
 		8B672AE729281C4B00E111B1 /* BlockState.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8B672AE529281C4B00E111B1 /* BlockState.cpp */; };
@@ -64,6 +66,10 @@
 		8B274F14293E925900E09D0C /* PacketTypes.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = PacketTypes.hpp; sourceTree = "<group>"; };
 		8B2B7A8E2917C51800916671 /* Math3D.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Math3D.cpp; sourceTree = "<group>"; };
 		8B2B7A8F2917C51800916671 /* Math3D.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = Math3D.hpp; sourceTree = "<group>"; };
+		8B3785C0296484F0006CAE4B /* Collidable.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Collidable.cpp; sourceTree = "<group>"; };
+		8B3785C1296484F0006CAE4B /* Collidable.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = Collidable.hpp; sourceTree = "<group>"; };
+		8B3785C42964AEFA006CAE4B /* PlayerEntity.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = PlayerEntity.cpp; sourceTree = "<group>"; };
+		8B3785C52964AEFA006CAE4B /* PlayerEntity.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = PlayerEntity.hpp; sourceTree = "<group>"; };
 		8B5055312927EF29007402FD /* textures.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = textures.png; sourceTree = "<group>"; };
 		8B53B3E4291697AC00713715 /* TextureAtlas.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = TextureAtlas.cpp; sourceTree = "<group>"; };
 		8B53B3E5291697AC00713715 /* TextureAtlas.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = TextureAtlas.hpp; sourceTree = "<group>"; };
@@ -222,6 +228,16 @@
 			path = Utilities;
 			sourceTree = "<group>";
 		};
+		8B3785C32964AA1B006CAE4B /* Mobs */ = {
+			isa = PBXGroup;
+			children = (
+				8BDE1216295D9E8C004ADE82 /* Entity */,
+				8B3785C42964AEFA006CAE4B /* PlayerEntity.cpp */,
+				8B3785C52964AEFA006CAE4B /* PlayerEntity.hpp */,
+			);
+			path = Mobs;
+			sourceTree = "<group>";
+		};
 		8B3ED5D82937D5000071F51E /* World */ = {
 			isa = PBXGroup;
 			children = (
@@ -235,12 +251,22 @@
 			path = World;
 			sourceTree = "<group>";
 		};
+		8B5144D0296213D0005D174B /* Physics */ = {
+			isa = PBXGroup;
+			children = (
+				8B3785C0296484F0006CAE4B /* Collidable.cpp */,
+				8B3785C1296484F0006CAE4B /* Collidable.hpp */,
+			);
+			path = Physics;
+			sourceTree = "<group>";
+		};
 		8B672AE429281C0500E111B1 /* Engine */ = {
 			isa = PBXGroup;
 			children = (
 				8BDE121D295DA47F004ADE82 /* Faces.hpp */,
 				8B3ED5D82937D5000071F51E /* World */,
-				8BDE1216295D9E8C004ADE82 /* Entity */,
+				8B3785C32964AA1B006CAE4B /* Mobs */,
+				8B5144D0296213D0005D174B /* Physics */,
 				8B0005D8295B0A4A00B4DE9D /* Engine.cpp */,
 				8B0005D9295B0A4A00B4DE9D /* Engine.hpp */,
 			);
@@ -343,6 +369,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				8B672AE729281C4B00E111B1 /* BlockState.cpp in Sources */,
+				8B3785C62964AEFA006CAE4B /* PlayerEntity.cpp in Sources */,
 				8B21827C293BE40C00F7AEFE /* Uuid.cpp in Sources */,
 				8B753E07294F03C40034507F /* Nbt.cpp in Sources */,
 				8B672AEA29281C5E00E111B1 /* Chunk.cpp in Sources */,
@@ -362,6 +389,7 @@
 				8BC709C829391CAB0031B28A /* VarInt.cpp in Sources */,
 				8B9B8322291528F400FB1030 /* GameViewController.mm in Sources */,
 				8B1FF3AE29130D5500A9C095 /* TudorCraftApp.swift in Sources */,
+				8B3785C2296484F0006CAE4B /* Collidable.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

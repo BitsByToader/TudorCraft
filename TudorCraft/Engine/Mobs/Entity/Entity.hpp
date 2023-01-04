@@ -13,20 +13,45 @@
 #include "Math3D.hpp"
 #include "EntityComponent.hpp"
 
+/// Abstract class used to create mobs and players in game.
+///
+/// This should only be used when being inherited and never by itself, since it's pretty much useless.
+/// It doesn't do collision checking, it doesn't apply any physics, etc. It only manages the components that make up
+/// an entity visually and any camera binding logic.
 class Entity {
 public:
     ~Entity();
     
+    /// Sets the position of the entity in the world. The method expects engine coordinates, not world coordinates.
+    /// - Parameters:
+    ///   - x: X engine coordinate.
+    ///   - y: Y engine coordinate.
+    ///   - z: Z engine coordinate.
     void setPosition(float x, float y, float z);
+    
+    /// Sets the rotation of the entity.
+    /// - Parameters:
+    ///   - pitch: Pitch angle of the entity.
+    ///   - yaw: Yaw angle of the entity.
     void setRotation(float pitch, float yaw);
+    
+    /// Adds a component to the entity.
+    /// - Parameter c: The component to add.
     void addComponent(EntityComponent *c);
     
+    /// Returns the transform matrix of the entity.
     simd::float4x4 transformMatrix();
+    
+    /// Returns a std vector of the entity's components.
     std::vector<EntityComponent *> components();
     
+    /// Returns the relative position of the entity's camera to the entity's position.
     simd::float3 cameraPosition();
     
+    /// Returns the position of the entity.
     simd::float3 position();
+    
+    /// Returns the rotation of the entity.
     simd::float3 rotation();
     
     //TODO: MAKE ME PRIVATE!

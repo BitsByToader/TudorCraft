@@ -133,8 +133,8 @@ public:
     };
     
 private:
+    //TODO: Convert these to std::optional<T>
     MCP::VarInt m_action;
-#warning Question: Is this the right way to do it?
     std::vector<MCP::Uuid> m_uuids;
     std::vector<Player> m_players;
     std::vector<MCP::VarInt> m_gamemodes;
@@ -233,6 +233,23 @@ private:
     NBT::Tag m_heightmap;
     VarInt m_dataSize;
     std::vector<ChunkSection> m_data;
+};
+
+class BlockUpdatePacket: public Packet {
+public:
+    ~BlockUpdatePacket() override = default;
+
+    void write(TCPStream *stream) override {};
+    void read(TCPStream *stream) override;
+
+    int getPacketId() override {
+        return (int) MCP::ClientBoundPlayingPacketTypes::BlockUpdate;
+    }
+    
+    void updateGame();
+private:
+    uint64_t m_blockPosition;
+    MCP::VarInt m_newState;
 };
 
 }

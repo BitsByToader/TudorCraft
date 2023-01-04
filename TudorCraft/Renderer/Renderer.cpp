@@ -363,7 +363,6 @@ void Renderer::draw(std::vector<std::shared_ptr<Entity>>& entities,
     
     // MARK: World transformations
     CameraData *cameraData = reinterpret_cast<CameraData *>(m_cameraDataBuffer->contents());
-#warning cameraPosition should be negated. Fix the movement functions as well
     cameraData->worldTranform = Math3D::makeXRotate4x4(-cameraPitch) * Math3D::makeYRotate4x4(-cameraYaw) * Math3D::makeTranslate( -cameraPosition );
     cameraData->worldNormalTranform = Math3D::discardTranslation(cameraData->worldTranform);
     
