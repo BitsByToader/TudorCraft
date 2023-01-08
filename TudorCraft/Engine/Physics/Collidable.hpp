@@ -8,7 +8,9 @@
 #ifndef Collidable_hpp
 #define Collidable_hpp
 
+#include <array>
 #include "World.hpp"
+#include "Faces.hpp"
 
 /// Abstract class used to make something collide with the world and other `Collidable` objects.
 ///
@@ -20,7 +22,8 @@ public:
     
     void setSize(float width, float height, float depth);
     
-    bool checkForCollisionsWithWorld(float x, float y, float z);
+    std::array<bool, 6> checkForCollisionsWithWorld(float initialX, float initialY, float initialZ,
+                                                    float dirX, float dirY, float dirZ);
     
 private:
     // AABB size

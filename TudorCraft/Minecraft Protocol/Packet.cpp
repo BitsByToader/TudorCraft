@@ -399,7 +399,11 @@ void BlockUpdatePacket::updateGame() {
     if ( m_newState.value() == 0 ) {
         World::shared()->placeBlockAt(x, y, z, nullptr);
     } else {
-        World::shared()->placeBlockAt(x, y, z, BlockState::GrassBlock());
+        // Safety check because I haven't yet implemented replacing a block with another block.
+        // This crashes because there are certains assumptions made when creating the mesh.
+        Block *b = World::shared()->getBlockAt(x, y, z);
+        if ( b != nullptr && b->state == nullptr )
+            World::shared()->placeBlockAt(x, y, z, BlockState::GrassBlock());
     }
 };
 

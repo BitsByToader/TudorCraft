@@ -10,12 +10,16 @@
 
 #include "Entity.hpp"
 #include "Collidable.hpp"
+#include "PhysicsConformable.hpp"
 
-class PlayerEntity: public Entity, public Collidable {
+class PlayerEntity: public Entity, public Collidable, public PhysicsConformable {
 public:
     PlayerEntity(float x, float y, float z);
     
-    void setPosition(float x, float y, float z);
+    void updatePosition(double timeMs);
+    void setSpeed(float x, float y, float z);
+    
+    bool onGround = false;
 };
 
 #endif /* PlayerEntity_hpp */

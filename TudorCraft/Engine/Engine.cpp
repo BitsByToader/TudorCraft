@@ -22,6 +22,8 @@ Engine* Engine::shared() {
 Engine::Engine() {
     m_renderer = Renderer::shared();
     m_world = World::shared();
+    
+    lastUpdate = std::chrono::high_resolution_clock::now();
 };
 
 Engine::~Engine() {
@@ -30,6 +32,15 @@ Engine::~Engine() {
 
 //MARK: - Update loop
 void Engine::updateGame(MTL::RenderPassDescriptor *currentRPD, MTL::Drawable* currentDrawable) {
+    auto now = std::chrono::high_resolution_clock::now();
+    
+    if ( m_player ) {
+        std::chrono::duration<double, std::milli> passed = now - lastUpdate;
+        m_player->updatePosition(passed.count());
+    }
+    
+    lastUpdate = now;
+    
     checkInput();
     
     updateCamera();
@@ -50,7 +61,6 @@ void Engine::checkInput() {
     if ( !m_player )
         return;
     
-    simd::float3 pos = m_player->position();
     float pitch = m_player->cameraBoundComponent->rotation().x;
     float yaw = m_player->rotation().y;
     
@@ -91,52 +101,56 @@ void Engine::checkInput() {
         m_pitchRadiansLeft -= 0.5;
     }
     
-    simd::float3 dir = {-2 * cos(pitch) * sin(yaw),
-                        -2 * sin(pitch),
-                        -2 * cos(pitch) * cos(yaw)};
+//    Use the below vector when calculating what block the player is looking at
+//    simd::float3 lookDir = {-10 * cos(pitch) * sin(yaw),
+//                        -10 * sin(pitch),
+//                        -10 * cos(pitch) * cos(yaw)};
+    
+    simd::float3 moveDirection = {-7.5f * sin(yaw),
+                                  0.f,
+                                  -7.5f * cos(yaw)};
+    
+    simd::float3 movementVector = { 0.f, 0.f, 0.f };
+    
     bool playerMoved = false;
     
     // Check keyboard
     if ( m_goingForward ) {
-        pos += dir;
+        movementVector.x += moveDirection.x;
+        movementVector.z += moveDirection.z;
         
         playerMoved = true;
     }
     
     if ( m_goingLeft ) {
-        pos.x += (dir * Math3D::makeYRotate3x3(-M_PI/2)).x;
-        pos.z += (dir * Math3D::makeYRotate3x3(-M_PI/2)).z;
+        movementVector.x += (moveDirection * Math3D::makeYRotate3x3(-M_PI/2)).x;
+        movementVector.z += (moveDirection * Math3D::makeYRotate3x3(-M_PI/2)).z;
         
         playerMoved = true;
     }
     
     if ( m_goingRight ) {
-        pos.x += (dir * Math3D::makeYRotate3x3(M_PI/2)).x;
-        pos.z += (dir * Math3D::makeYRotate3x3(M_PI/2)).z;
+        movementVector.x += (moveDirection * Math3D::makeYRotate3x3(M_PI/2)).x;
+        movementVector.z += (moveDirection * Math3D::makeYRotate3x3(M_PI/2)).z;
         
         playerMoved = true;
     }
     
     if ( m_goingBackward ) {
-        pos -= dir;
+        movementVector.x -= moveDirection.x;
+        movementVector.z -= moveDirection.z;
         
         playerMoved = true;
     }
     
     if ( m_goingUp ) {
-        pos.y += 2.f;
+        movementVector.y += 20.f;
         
         playerMoved = true;
     }
     
-    if ( m_goingDown ) {
-        pos.y -= 2.f;
-        
-        playerMoved = true;
-    }
-    
-    if ( playerMoved )
-        m_player->setPosition(pos.x, pos.y, pos.z);
+    if ( playerMoved && m_player->onGround )
+        m_player->setSpeed(movementVector.x, movementVector.y, movementVector.z);
     
     simd::float3 temp = m_player->rotation();
     m_player->setRotation(temp.x, yaw);

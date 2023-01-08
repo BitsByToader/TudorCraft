@@ -70,7 +70,7 @@ samplingShader(RasterizerData in [[stage_in]],
     float ndotl = saturate( dot( n, l ) );
 
     // return the color of the texture
-    return float4(colorSample * 0.1 + colorSample * ndotl);
+    return float4(colorSample * 0.2 + colorSample * ndotl);
 }
 
 

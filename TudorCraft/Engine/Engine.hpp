@@ -10,6 +10,7 @@
 
 #include <vector>
 #include <memory>
+#include <chrono>
 
 #include "Renderer.hpp"
 #include "World.hpp"
@@ -68,6 +69,8 @@ private:
     std::vector<std::shared_ptr<Entity>> m_entities;
     Entity* m_cameraBoundEntity = nullptr;
     PlayerEntity* m_player = nullptr;
+    
+    std::chrono::high_resolution_clock::time_point lastUpdate;
 };
 
 #endif /* Engine_hpp */
