@@ -9,6 +9,9 @@
 #define Faces_h
 
 /// Maps each face of a cuboid to an index in an array with 6 elements.
+///
+/// Used in multiple places, e.g: when generating the mesh, when deciding on which face to place a block,
+/// when checking for collisions etc.
 enum Faces: unsigned char {
     Front   = 0,
     Left    = 1,

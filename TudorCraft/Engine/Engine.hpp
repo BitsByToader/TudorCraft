@@ -50,13 +50,37 @@ public:
     ///   - y: New relative (to the last position) y coordinate of the mouse.
     void mouseMoved(float x, float y);
     
+    /// Notifies the engine a mouse button has been pressed.
+    /// - Parameter button: The code of the button that was pressed.
     void pressedMouse(int button);
     
+    /// Setter for the TCP network client used to communicate with the MC:JE server.
+    /// - Parameter s: The server connection.
     void setServerConnection(TCPClient *s);
     
+    /// Spawns the player in the world.
+    /// - Parameters:
+    ///   - x: X render coordinate of spawn point.
+    ///   - y: Y render coordinate of spawn point.
+    ///   - z: Z render coordinate of spawn point.
+    ///   - yaw: Yaw of the player.
+    ///   - pitch: Pitch of the player's head.
     void spawnPlayer(float x, float y, float z, float yaw, float pitch);
+    
+    /// Adds an entity to the world. This can be any entity, like another player, a mob, etc.
+    /// - Parameters:
+    ///   - id: The id of the entity to spawn.
+    ///   - mob: The entity to add to the world.
     void addEntity(int id, std::shared_ptr<MobEntity> mob);
+    
+    /// Remove the given entity
+    /// - Parameter id: ID of entity to remove.
     void removeEntity(int id);
+    
+    /// Retrieves an entity by its id.
+    /// - Parameter id: The id of the entity to retrieve.
+    ///
+    /// - Returns: A smart pointer of the entity (it's life cycle is automatically managed).
     std::shared_ptr<MobEntity> getEntity(int id);
     
 private:
@@ -98,10 +122,12 @@ private:
     
     // Networking
     TCPClient *m_serverConnection = nullptr;
+    
     // Counter used by the server to keep track of player actions (place, remove block, digging)
-    // to prevent ghost blocks, latency, etc.
+    // to prevent general inconsistencies: ghost blocks, latency, etc.
     int m_sequenceCounter = 0;
     
+    // The observer that is used to receive notification about hotbar slot changes.
     NS::Object *m_slotNotificationObserver = nullptr;
 };
 

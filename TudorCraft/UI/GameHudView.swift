@@ -7,6 +7,9 @@
 
 import SwiftUI
 
+/// `GameHudView`, as the name implies, holds the HUD of the game, i.e the crosshair, the touch controls, the pause button
+/// and the hotbar of the game. The hotbar uses the `NotificationCenter` to send and receive updates on the currently selected
+/// block to and from the C++ engine. 
 struct GameHudView: View {
     @Binding var gamePaused: Bool
     

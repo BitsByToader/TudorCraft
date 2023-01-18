@@ -43,7 +43,7 @@ std::array<bool, 6> Collidable::checkForCollisionsWithWorld(float initialX, floa
     for ( int i = floor(x/10); i <= floor((x+m_width)/10); i++ ) {
         for ( int j = floor(y/10); j <= floor((y+m_height)/10); j++ ) {
             // Substract/Add 0.1 to check for neighbour blocks in the world that are a bit further
-            // a way than the actual AABB to prevent from returning multiple collisions .
+            // a way than the actual AABB to prevent returning multiple collisions .
             if ( dirZ > 0 ) {
                 b = m_world->getBlockAt(i, j, floor(-z/10-0.1));
                 if ( b == nullptr || (b != nullptr && b->state != nullptr) )

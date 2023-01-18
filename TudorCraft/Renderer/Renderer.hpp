@@ -17,6 +17,7 @@
 #include "Entity.hpp"
 #include "TextureAtlas.hpp"
 
+/// The voxle renderer responsible  for displaying the world and all its contents to the drawable.
 class Renderer {
 public:
     // MARK: Public Methods
@@ -28,6 +29,10 @@ public:
     
     /// Getter for the global Renderer singleton.
     static Renderer *shared();
+    
+    /// Destoys the shared object.
+    ///
+    /// **WARNING:  Only use this when there are no other objects holding a pointer to the shared object!**
     static void destroySharedObject();
     
     /// Notifies the renderer that the window size changed.
@@ -59,11 +64,16 @@ public:
     /// This method automatically decreases `m_instanceCount`.
     /// - Parameter index: The element's index to remove from the buffer.
     void removeInstanceAt(int index);
-
+    
+    /// Sets the camera to a place in the world and gives it an orientation.
+    /// - Parameters:
+    ///   - pos: Position in render coordinates.
+    ///   - yaw: Yaw in radians.
+    ///   - pitch: Pitch in radians.
+    void setCameraInWorld(simd::float3 pos, float yaw, float pitch);
+    
+    /// The mutex (binary semaphose) used to sync the CPU to the GPU when updating the world to prevent acceses while writing/reading.
     std::mutex m_gpuMutex;
-    simd::float3 cameraPosition = (simd::float3) { 0.f, 0.f, 0.f };
-    float cameraYaw = 0.f;
-    float cameraPitch = 0.f;
 private:
     static Renderer *m_sharedObject;
     
@@ -119,6 +129,11 @@ private:
     
     /// The atlas we're using to load the textures from.
     TextureAtlas *m_atlas;
+    
+    /// Camera position and orietantion members.
+    simd::float3 m_cameraPosition = (simd::float3) { 0.f, 0.f, 0.f };
+    float m_cameraYaw = 0.f;
+    float m_cameraPitch = 0.f;
 };
 
 #endif /* Renderer_hpp */

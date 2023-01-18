@@ -10,6 +10,11 @@ import SwiftUI
 // TODO: Use the modifiers flags to tell when the Shift/Alt/Ctrl keys are used
 // TODO: controller.keyPress should return a boolean on whether or not it used the sent keys
 
+
+/// `GameView` is the actual view that holds the game and is the final view the use has acces to currently.
+/// Besides featuring the actual `MetalKit` view the renders the game, it also displays the hotbar with the available blocks to use
+/// and touch controls for iOS/iPadOS devides. Pausing the game either via the Esc key or the button will display the navigation bar
+/// which can quit the game at any point.
 struct GameView: View {
     let username: String
     let address: String

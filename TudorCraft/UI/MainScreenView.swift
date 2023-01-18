@@ -7,6 +7,10 @@
 
 import SwiftUI
 
+/// `MainScreenView` is the first thing the user actually sees. It features a panorama of a desert rendered in-game, and blurred using a
+/// gaussian blur. On top of all of this, there's the TudorCraft logo and the options that the user has for proceeding further.
+///
+/// Currently, only multiplayer is supported and there are no options to tweak, so only the "Multiplayer" button is available.
 struct MainScreenView: View {
     @State var isPresented: Bool = false
     

@@ -48,7 +48,6 @@ template<>
 void decode(Streamable *stream, TagString *val) {
     uint16_t strLength = 0;
     stream->readBytes((uint8_t *) &strLength, 2);
-#warning wtf?
     std::reverse((uint8_t *) &strLength, (uint8_t *) &strLength + 2);
     
     if ( strLength > 0 ) {

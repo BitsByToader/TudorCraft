@@ -8,6 +8,7 @@
 import SwiftUI
 
 @main
+/// The entry point of the game, this is the root of the UI and all logic starts from here.
 struct TudorCraftApp: App {
     var body: some Scene {
         WindowGroup {

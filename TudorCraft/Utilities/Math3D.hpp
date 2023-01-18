@@ -50,7 +50,10 @@ inline const simd::float4x4 moveFaceToBottom() {
 };
 
 //MARK: - Others
+/// Calculates the cosinus between two vectors using their dot product.
 float cosBetween(simd::float3 v1, simd::float3 v2);
+
+/// Calculates an unique hash from 3 integers (usually coordinates) using Cantor's pairing function.
 size_t hash3D(int a,  int b, int c);
 
 }

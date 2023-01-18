@@ -31,6 +31,7 @@ struct Tuple3DHash {
     }
 };
 
+/// Manages, adds/removes from rendering all of the chunks that the game received from the server.
 class World {
 public:
     World();
@@ -68,9 +69,20 @@ public:
     ///   - state: The new state of the block at the coordinates. Pass `nullptr` to remove a block from the world.
     void placeBlockAt(int x, int y, int z, BlockState *state);
     
+    /// Highlights the block.
+    /// - Parameters:
+    ///   - x: X coordinate of block to highlight.
+    ///   - y: Z coordinate of block to highlight.
+    ///   - z: Y coordinate of block to highlight.
     void highlightBlock(int x, int y, int z);
+    
+    /// Removes the highlight from the currently highlighted block.
     void removeHightlight();
     
+    /// Currently, this is fine to be left as is, but in the future a getter/settter combo is necessary.
+    ///
+    /// The center chunk is used to determine what chunks to add/remove from rendering based on the
+    /// set render distance. However, we currently don't support this functionality.
     simd::float2 centerChunk = (simd::float2) { 0.f, 0.f };
 private:
     static World *m_sharedObject;

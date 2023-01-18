@@ -84,6 +84,7 @@ public:
     void setBlockAt(int x, int y, int z,
                     BlockState *state);
     
+    // Getters:
     int x() {
         return m_xCoordinate;
     };

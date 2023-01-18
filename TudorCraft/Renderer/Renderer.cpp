@@ -67,6 +67,10 @@ Renderer::~Renderer() {
     m_heap->release();
     m_depthState->release();
     m_instanceDataBuffer->release();
+    m_cubeIndexBuffer->release();
+    m_cubeVertices->release();
+    m_cubeInstanceDatBuffer->release();
+    m_cameraDataBuffer->release();
     for ( int i = 0; i < 3; i++ ) {
         m_texture[i]->release();
     }
@@ -330,8 +334,6 @@ void Renderer::moveResourcesToHeap() {
     blitEncoder->endEncoding();
     commandBuffer->commit();
     
-//    blitEncoder->release();
-//    commandBuffer->release();
     pPool->release();
 };
 
@@ -384,7 +386,7 @@ void Renderer::draw(std::vector<std::shared_ptr<Entity>>& entities,
     
     // MARK: World transformations
     CameraData *cameraData = reinterpret_cast<CameraData *>(m_cameraDataBuffer->contents());
-    cameraData->worldTranform = Math3D::makeXRotate4x4(-cameraPitch) * Math3D::makeYRotate4x4(-cameraYaw) * Math3D::makeTranslate( -cameraPosition );
+    cameraData->worldTranform = Math3D::makeXRotate4x4(-m_cameraPitch) * Math3D::makeYRotate4x4(-m_cameraYaw) * Math3D::makeTranslate( -m_cameraPosition );
     cameraData->worldNormalTranform = Math3D::discardTranslation(cameraData->worldTranform);
     
     // MARK: Configure draw command
@@ -475,4 +477,10 @@ void Renderer::removeInstanceAt(int index) {
     --m_instanceCount; 
 };
 
+//MARK: - Others
+void Renderer::setCameraInWorld(simd::float3 pos, float yaw, float pitch) {
+    m_cameraPosition = pos;
+    m_cameraYaw = yaw;
+    m_cameraPitch = pitch;
+};
 

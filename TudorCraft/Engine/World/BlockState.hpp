@@ -11,10 +11,13 @@
 #include <iostream>
 #include <unordered_map>
 
+/// Holds details of any block in the game.
 class BlockState {
 public:
+    /// Getter for the global pallete.
     static std::unordered_map<int, BlockState*>& GlobalPallete();
     
+    // The blocks currently supported:
     static BlockState* GrassBlock();
     static BlockState* DirtBlock();
     static BlockState* StoneBlock();
@@ -27,6 +30,7 @@ public:
     static BlockState* TNTBlock();
     static BlockState* DiamondOreBlock();
     
+    // Getters:
     int frontTexture() {
         return m_frontTextureIndex;
     };

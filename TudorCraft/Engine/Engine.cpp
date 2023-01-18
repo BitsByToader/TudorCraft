@@ -136,9 +136,9 @@ void Engine::updateLookTarget() {
 
 void Engine::updateCamera() {
     if ( m_cameraBoundEntity != nullptr ) {
-        m_renderer->cameraPosition = m_cameraBoundEntity->cameraPosition();
-        m_renderer->cameraYaw = m_cameraBoundEntity->rotation().y;
-        m_renderer->cameraPitch = m_cameraBoundEntity->cameraBoundComponent->rotation().x;
+        m_renderer->setCameraInWorld(m_cameraBoundEntity->cameraPosition(),
+                                     m_cameraBoundEntity->rotation().y,
+                                     m_cameraBoundEntity->cameraBoundComponent->rotation().x);
     }
 };
 

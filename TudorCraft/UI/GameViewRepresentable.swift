@@ -11,6 +11,8 @@ import MetalKit
 
 #if os(macOS)
 
+/// This is a bridge between SwiftUI (what the rest of the UI is made of) and GameViewController, a UIKit/Appkit view controller,
+/// that hold a derived MetalKitViewController for rendering the game.
 struct GameViewRepresentable: NSViewControllerRepresentable {
     typealias NSViewControllerType = GameViewController
     var controller: GameViewController
@@ -26,6 +28,8 @@ struct GameViewRepresentable: NSViewControllerRepresentable {
 #endif
 
 #if os(iOS)
+/// This is a bridge between SwiftUI (what the rest of the UI is made of) and GameViewController, a UIKit/Appkit view controller,
+/// that holds a derived MetalKitViewController for rendering the game.
 struct GameViewRepresentable: UIViewControllerRepresentable {
     var controller: GameViewController
     

@@ -11,6 +11,14 @@
 #include <simd/simd.h>
 #include "Math3D.hpp"
 
+/// Defines a component of an entity.
+///
+/// If an entity wants to be displayed it is required to  have at least one component. This makes the component the primitive that is
+/// rendered by the `Renderer` class. There are no restrictions on components, they can have any texture any cuboid shape, and be placed
+/// everywhere (relative to its parent entity).
+///
+/// However, a component also can't be displayed on its own, it has to be owned and managed by its parent entity for it to be useful. As such, it
+/// is fully expected that the parent Entity will **completely** manage the life cycle of the component.
 class EntityComponent {
 public:
     /// Sets the size of the component.

@@ -7,6 +7,9 @@
 
 import SwiftUI
 
+/// `ConnectionView` is the view that prompts the user to enter all of the details for the server it wants to connet to. The user can
+/// choose any arbitrary official *Minecraft: Java Edition*, version **1.19.2** that has compression and encryption disabled and log in
+/// with any username he wishes.
 struct ConnectionView: View {
     @AppStorage("username") var chosenUsername: String = "TudorCraft"
     @AppStorage("address") var chosenIp: String = "127.0.0.1"

@@ -15,7 +15,7 @@
 #define ATLAS_FILENAME "/textures.png"
 
 /// This class will load one singular PNG in memory.
-/// Using predefined indexes for each texture, other objects can then get a pointer of individual textures.
+/// Using predefined indexes for each texture, other objects can then get a `MTL::Texture` object for every texture.
 class TextureAtlas {
 public:
     TextureAtlas(MTL::Device *device);

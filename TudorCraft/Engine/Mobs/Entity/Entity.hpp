@@ -36,6 +36,10 @@ public:
     void setRotation(float pitch, float yaw);
     
     /// Adds a component to the entity.
+    ///
+    /// **NOTE: ** Once a component has been added to an  entity, it is considered that the entity
+    /// is now the parent of the component and it fully owns it, making it responsible for deallocating it.
+    ///
     /// - Parameter c: The component to add.
     void addComponent(EntityComponent *c);
     

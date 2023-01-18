@@ -7,6 +7,8 @@
 
 import SwiftUI
 
+/// `TouchControlsView` is nothing more than what the name suggests. It provides a form of controls for touch devices that don't
+/// have a keyboard or mouse (or even if they have, they can't use NSEvent because they're running iOS and not macOS).
 struct TouchControlsView: View {
     let controller: GameViewController?
     
