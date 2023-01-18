@@ -15,6 +15,10 @@
 @implementation GameViewController
     MTKView* m_view;
     
+    NSString* m_username;
+    NSString* m_address;
+    int m_port;
+
     Engine* m_engine;
     Renderer* m_renderer;
     World* m_world;
@@ -22,29 +26,56 @@
 
     bool gamePaused = false;
 
-- (id) init {
-//    NSLog(@"Called GameViewController init");
+- (id) initWithUsername: (NSString*) username ip: (NSString*) ip port: (int) port {
+    NSLog(@"Called initWithUsername");
     
     self = [super init];
     
+    m_username = username;
+    m_address = ip;
+    m_port = port;
+    
+//    [[NSNotificationCenter defaultCenter] addObserver:self
+//            selector:@selector(receiveSlotNotification:)
+//            name:@"slot"
+//            object:nil];
+    
     return self;
+};
+
+- (void) dealloc {
+    NSLog(@"Called GameViewController dealloc");
+    
+//    [[NSNotificationCenter defaultCenter] removeObserver:self];
 }
 
 - (void) viewDidDisappear {
-    delete m_renderer;
+    NSLog(@"Called viewDidDissapear");
+    
     delete m_client;
+    Renderer::destroySharedObject();
+    World::destroySharedObject();
+    Engine::destroySharedObject();
+    
+    m_engine = nullptr;
+    m_renderer = nullptr;
+    m_world = nullptr;
+    m_client = nullptr;
+}
+
+- (void) viewDidAppear {
+    NSLog(@"Called viewDidAppear");
 }
 
 - (void) loadView {
-//    NSLog(@"Called loadView");
+    NSLog(@"Called loadView");
     
     m_view = [[MTKView alloc] init];
-    
     self.view = m_view;
 }
 
 - (void)viewDidLoad {
-//    NSLog(@"Called viewDidLoad");
+    NSLog(@"Called viewDidLoad");
     
     [super viewDidLoad];
     
@@ -60,11 +91,14 @@
     m_view.colorPixelFormat = MTLPixelFormat::MTLPixelFormatBGRA8Unorm_sRGB;
     
     m_view.device = MTLCreateSystemDefaultDevice();
-    m_engine = Engine::shared();
-    m_renderer = Renderer::shared();
-    m_world = World::shared();
     
-    // Configure the view to use the default device
+    if ( m_username && m_address ) {
+        m_renderer = Renderer::shared();
+        m_world = World::shared();
+        m_engine = Engine::shared();
+        m_client = new TCPClient([m_username UTF8String], [m_address UTF8String], m_port);
+    }
+    
     m_view.delegate = self;
     
 #if TARGET_OS_IPHONE
@@ -74,22 +108,24 @@
         CGDisplayHideCursor(kCGDirectMainDisplay);
     }
 #endif
-    
-    m_client = new TCPClient("192.168.1.11", 25565); //192.168.1.11
+}
+
+- (void) receiveSlotNotification: (NSNotification *) notification {
+    if ( [notification.name  isEqual: @"slot"] ) {
+        
+    }
 }
 
 - (void)drawInMTKView:(nonnull MTKView *)view {
     // Update the game.
-    m_engine->updateGame((__bridge MTL::RenderPassDescriptor *) m_view.currentRenderPassDescriptor,
-                         (__bridge MTL::Drawable *) m_view.currentDrawable);
+    if ( m_engine != nullptr )
+        m_engine->updateGame((__bridge MTL::RenderPassDescriptor *) m_view.currentRenderPassDescriptor,
+                             (__bridge MTL::Drawable *) m_view.currentDrawable);
 }
 
 - (void)mtkView:(nonnull MTKView *)view drawableSizeWillChange:(CGSize)size {
-//    NSLog(@"Called mtkView");
-//    MTL::Size newSize = MTL::Size::Make(size.width, size.height, 0);
-//    m_renderer->drawableSizeWillChange(newSize, MTL::StorageModePrivate);
-    
-    m_renderer->windowSizeWillChange(size.width, size.height);
+    if (m_renderer != nullptr )
+        m_renderer->windowSizeWillChange(size.width, size.height);
     
     // The drawable changes its size after the view redraws itself.
     // If the user pauses the view, the renderer
@@ -122,10 +158,14 @@
     }
 };
 
-- (void) mouseMoved: (CGFloat) x newY: (CGFloat) y {
+- (void) mouseMovedWithDeltaX: (CGFloat) x deltaY: (CGFloat) y {
     if ( !gamePaused ) {
         m_engine->mouseMoved(x, y);
     }
+};
+
+- (void) pressedMouse: (int) button {
+    m_engine->pressedMouse(button);
 };
 
 - (BOOL)commitEditingAndReturnError:(NSError *__autoreleasing  _Nullable * _Nullable)error {

@@ -52,6 +52,7 @@ class NotificationCenter : public NS::Referencing<NotificationCenter>
         static class NotificationCenter* defaultCenter();
         Object* addObserver(NotificationName name, Object* pObj, void* pQueue, ObserverBlock block);
         Object* addObserver(NotificationName name, Object* pObj, void* pQueue, ObserverFunction &handler);
+        void postNotificationName(NotificationName name, Object* obj);
         void removeObserver(Object* pObserver);
 
 };
@@ -99,6 +100,13 @@ _NS_INLINE NS::Object* NS::NotificationCenter::addObserver(NS::NotificationName 
     __block ObserverFunction blockFunction = handler;
 
     return addObserver(name, pObj, pQueue, ^(NS::Notification* pNotif) {blockFunction(pNotif);});
+}
+
+//-------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+_NS_INLINE void NS::NotificationCenter::postNotificationName(NS::NotificationName name, Object* obj)
+{
+    return NS::Object::sendMessage<void>(this, _NS_PRIVATE_SEL(postNotificationName_object_), name, obj);
 }
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------

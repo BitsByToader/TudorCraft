@@ -36,6 +36,11 @@ Renderer *Renderer::shared() {
     return m_sharedObject;
 }
 
+void Renderer::destroySharedObject() {
+    delete m_sharedObject;
+    m_sharedObject = nullptr;
+}
+
 // MARK: - Constructor
 Renderer::Renderer() {
     m_device = MTL::CreateSystemDefaultDevice();
@@ -72,9 +77,21 @@ void Renderer::loadMetal() {
     NS::AutoreleasePool* pPool = NS::AutoreleasePool::alloc()->init();
     
     //MARK: Create textures
-    m_texture[0] = m_atlas->getTextureWithCoordinates(0, 25*16-9); // side
-    m_texture[1] = m_atlas->getTextureWithCoordinates(17*16-6, 0); // top
-    m_texture[2] = m_atlas->getTextureWithCoordinates(10*16-4, 21*16-8); // bottom
+    m_texture[0]  = m_atlas->getTextureWithCoordinates(3*16, 9*16); // Undefined texture
+    m_texture[1]  = m_atlas->getTextureWithCoordinates(0*16, 3*16); // Grass side
+    m_texture[2]  = m_atlas->getTextureWithCoordinates(2*16, 8*16); // Grass top
+    m_texture[3]  = m_atlas->getTextureWithCoordinates(0*16, 2*16); // Grass bottom
+    m_texture[4]  = m_atlas->getTextureWithCoordinates(1*16, 4*16); // Oak log side
+    m_texture[5]  = m_atlas->getTextureWithCoordinates(1*16, 5*16); // Oak log top/bottom
+    m_texture[6]  = m_atlas->getTextureWithCoordinates(0*16, 1*16); // Stone all
+    m_texture[7]  = m_atlas->getTextureWithCoordinates(0*16, 4*16); // Plank all
+    m_texture[8]  = m_atlas->getTextureWithCoordinates(1*16, 10*16); // Leaves all
+    m_texture[9]  = m_atlas->getTextureWithCoordinates(0*16, 14*16); // water all
+    m_texture[10] = m_atlas->getTextureWithCoordinates(1*16, 2*16); // sand all
+    m_texture[11] = m_atlas->getTextureWithCoordinates(3*16, 2*16); // diamond ore all
+    m_texture[12] = m_atlas->getTextureWithCoordinates(0*16, 8*16); // tnt side
+    m_texture[13] = m_atlas->getTextureWithCoordinates(0*16, 9*16); // tnt top
+    m_texture[14] = m_atlas->getTextureWithCoordinates(0*16, 10*16); // tnt bottom
     
     // MARK: Create vertices
     float s = 0.5f;
@@ -99,7 +116,7 @@ void Renderer::loadMetal() {
     m_blockFaceIndexBuffer = m_device->newBuffer(indices,
                                                  sizeof(indices),
                                                  MTL::ResourceStorageModeShared);
-    m_instanceDataBuffer = m_device->newBuffer(10 * 24 * 16 * 16 * 16 * 6 * sizeof(InstanceData), // Length
+    m_instanceDataBuffer = m_device->newBuffer(24 * 16 * 16 * 16 * 6 * sizeof(InstanceData), // Length
                                                MTL::ResourceStorageModeShared); // Mode
     
     Vertex cubeVertices[] =
@@ -152,7 +169,10 @@ void Renderer::loadMetal() {
     m_cubeIndexBuffer = m_device->newBuffer(cubeIndices,
                                             sizeof(cubeIndices),
                                             MTL::ResourceStorageModeShared);
-    m_cubeInstanceDatBuffer = m_device->newBuffer(5 * sizeof(InstanceData), // Length
+    
+    // Assume a maximum of 1000 cubes, or about 500 entities?
+    // Normally there would some system where we reallocate a new buffer if we need more space
+    m_cubeInstanceDatBuffer = m_device->newBuffer(1000 * sizeof(InstanceData), // Length
                                                   MTL::ResourceStorageModeShared); // Mode
     
     // Create the buffer and the perspective matrix once
@@ -193,7 +213,7 @@ void Renderer::loadMetal() {
     
     argEncoder->setArgumentBuffer(m_fragmentShaderArgBuffer, 0);
     
-    for ( int i = 0; i < m_textureCount; i++ ) {
+    for ( int i = 0; i < TEXTURE_COUNT; i++ ) {
         argEncoder->setTexture(m_texture[i], TextureIndexBaseColor + i);
     }
     
@@ -245,7 +265,7 @@ void Renderer::createHeap() {
     heapDescriptor->setSize(0);
     
     //Build a descriptor for each texture and calculate the size required to store all the textures in the heap.
-    for ( int i = 0; i < m_textureCount; i++ ) {
+    for ( int i = 0; i < TEXTURE_COUNT; i++ ) {
         MTL::TextureDescriptor *descriptor = Renderer::newDescriptorFromTexture(m_texture[i],
                                                                                 heapDescriptor->storageMode());
         
@@ -275,7 +295,7 @@ void Renderer::moveResourcesToHeap() {
     blitEncoder->setLabel(AAPLSTR("Heap transfer blit encoder"));
     
     // Create new textures from the heap and copy the contents.
-    for ( int i = 0; i < m_textureCount; i++ ) {
+    for ( int i = 0; i < TEXTURE_COUNT; i++ ) {
         MTL::TextureDescriptor *descriptor = Renderer::newDescriptorFromTexture(m_texture[i],
                                                                                 m_heap->storageMode());
         
@@ -355,7 +375,8 @@ void Renderer::draw(std::vector<std::shared_ptr<Entity>>& entities,
         for ( auto component: entity->components() ) {
             cubes[cubeCount].transform = entity->transformMatrix() * component->transformMatrix();
             cubes[cubeCount].normalTransform = Math3D::discardTranslation(cubes[cubeCount].transform);
-            cubes[cubeCount].textureId = 2;
+            cubes[cubeCount].textureId = 3;
+            cubes[cubeCount].highlighted = false;
             
             cubeCount++;
         }

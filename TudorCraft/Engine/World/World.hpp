@@ -40,6 +40,8 @@ public:
     /// Getter for  the`World` singleton.
     static World *shared();
     
+    static void destroySharedObject();
+    
     /// Returns the chunk at the given world coordinates.
     /// - Parameters:
     ///   - x: X coordinate
@@ -66,14 +68,16 @@ public:
     ///   - state: The new state of the block at the coordinates. Pass `nullptr` to remove a block from the world.
     void placeBlockAt(int x, int y, int z, BlockState *state);
     
-    void calculateMeshes();
+    void highlightBlock(int x, int y, int z);
+    void removeHightlight();
     
     simd::float2 centerChunk = (simd::float2) { 0.f, 0.f };
-    
 private:
     static World *m_sharedObject;
     
     std::unordered_map<Tuple3D, Chunk *, Tuple3DHash> m_chunks;
+    
+    Block *m_highlightedBlock = nullptr;
 };
 
 #endif /* World_hpp */

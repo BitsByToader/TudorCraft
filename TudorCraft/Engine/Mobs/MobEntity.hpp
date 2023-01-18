@@ -12,9 +12,9 @@
 #include "Collidable.hpp"
 #include "PhysicsConformable.hpp"
 
-class PlayerEntity: public Entity, public Collidable, public PhysicsConformable {
+class MobEntity: public Entity, public Collidable, public PhysicsConformable {
 public:
-    PlayerEntity(float x, float y, float z);
+    MobEntity(float x, float y, float z);
     
     void updatePosition(double timeMs);
     void setSpeed(float x, float y, float z);

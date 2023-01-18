@@ -18,6 +18,7 @@ World::~World() {
     for ( auto it: m_chunks) {
         delete it.second;
     };
+    m_chunks.clear();
     
     //TODO: Also reset the instance data buffer to blank out the renderer?
 }
@@ -29,6 +30,11 @@ World *World::shared() {
     }
     
     return m_sharedObject;
+}
+
+void World::destroySharedObject() {
+    delete m_sharedObject;
+    m_sharedObject = nullptr;
 }
 
 #warning Find a faster way to calculate these correctly
@@ -59,21 +65,37 @@ void World::placeBlockAt(int x, int y, int z, BlockState *state) {
 
 void World::loadChunk(Chunk *c) {
     m_chunks[{c->x(), c->y(), c->z()}] = c;
-    
-//    Renderer::shared()->m_gpuMutex.lock();
-//    c->calculateMesh();
-//    Renderer::shared()->m_gpuMutex.unlock();;
 }
 
-void World::calculateMeshes() {
-    Renderer::shared()->m_gpuMutex.lock();
-    for ( auto it: m_chunks ) {
-        if ( it.second != nullptr ) {
-            it.second->calculateMesh();
+void World::highlightBlock(int x, int y, int z) {
+    Block *b = getBlockAt(x, y, z);
+    
+    removeHightlight();
+    
+    InstanceData *faces = Renderer::shared()->instanceBuffer();
+    for ( int i = 0; i < 6; i++ ) {
+        if ( b->faceIndices[i] != -1 ) {
+            faces[b->faceIndices[i]].highlighted = true;
         }
     }
-    Renderer::shared()->m_gpuMutex.unlock();
-}
+    
+    
+    
+    m_highlightedBlock = b;
+};
+
+void World::removeHightlight() {
+    InstanceData *faces = Renderer::shared()->instanceBuffer();
+    if ( m_highlightedBlock != nullptr ) {
+        for ( int i = 0; i < 6; i++ ) {
+            if ( m_highlightedBlock->faceIndices[i] != -1 ) {
+                faces[m_highlightedBlock->faceIndices[i]].highlighted = false;
+            }
+        }
+    }
+    
+    m_highlightedBlock = nullptr;
+};
 
 
 

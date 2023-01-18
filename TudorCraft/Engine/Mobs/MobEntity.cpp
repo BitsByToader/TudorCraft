@@ -5,10 +5,10 @@
 //  Created by Tudor Ifrim on 03.01.2023.
 //
 
-#include "PlayerEntity.hpp"
+#include "MobEntity.hpp"
 #include "AAPLUtilities.h"
 
-PlayerEntity::PlayerEntity(float x, float y, float z): Collidable(), Entity(), PhysicsConformable() {
+MobEntity::MobEntity(float x, float y, float z): Collidable(), Entity(), PhysicsConformable() {
     // Set up the entity
     int indices[] = {2, 2, 2, 2, 2, 2};
     
@@ -19,7 +19,7 @@ PlayerEntity::PlayerEntity(float x, float y, float z): Collidable(), Entity(), P
     bottom->setTextures(indices);
     
     EntityComponent *top = new EntityComponent;
-    top->setRelativePosition(0.f, 12.f, 2.5f);
+    top->setRelativePosition(0.f, 9.5f, 0.f);
     top->setSize(5.f, 5.f, 5.f);
     top->setRotation(0.f, 0.f, 0.f);
     top->setTextures(indices);
@@ -40,11 +40,11 @@ PlayerEntity::PlayerEntity(float x, float y, float z): Collidable(), Entity(), P
     PhysicsConformable::setDrag(0.5f);
 };
 
-void PlayerEntity::setSpeed(float x, float y, float z) {
+void MobEntity::setSpeed(float x, float y, float z) {
     PhysicsConformable::setVelocity(Forces::Movement, {x, y, z});
 };
 
-void PlayerEntity::updatePosition(double timeMs) {
+void MobEntity::updatePosition(double timeMs) {
     PhysicsConformable::setVelocity(Forces::Gravity, {0.f, -10.f, 0.f});
     
     simd::float3 deltaPosition = PhysicsConformable::calculateDeltaPosition(timeMs);

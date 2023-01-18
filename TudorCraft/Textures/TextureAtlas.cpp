@@ -16,6 +16,8 @@
 
 #include "TextureAtlas.hpp"
 
+#define STBI_FAILURE_USERMSG
+
 //MARK: - Constructor
 TextureAtlas::TextureAtlas(MTL::Device *device): m_device(device) {
 }
@@ -40,7 +42,8 @@ void TextureAtlas::loadAtlasInMemory() {
     
     // 4 -> 4 channels -> Red, Green, Blue, Alpha
     m_atlasRawData = stbi_load(imgPath->utf8String(), &m_atlasWidth, &m_atlasHeight, &m_channels, 4);
-    AAPL_ASSERT(m_atlasRawData, "Couldn't load texture atlas!");
+    AAPL_ASSERT(m_atlasRawData, "Image loading error: ", stbi_failure_reason());
+    AAPL_PRINT("Loaded texture atlas succesfully!");
     
     m_textureRawData = new unsigned char[TEXTURE_WIDTH * TEXTURE_HEIGHT * m_channels];
     
@@ -55,17 +58,10 @@ MTL::Texture *TextureAtlas::getTextureWithCoordinates(int x, int y) {
     for ( int i = 0; i < 16; i++ ) {
         for ( int j = 0; j < 16; j++ ) {
             // Swap red with blue channels
-#if TARGET_OS_IPHONE
-            m_textureRawData[(i*16+j)*4 + 0] = m_atlasRawData[((x+i) * m_atlasHeight + (y+j)) * 4 + 0];
-            m_textureRawData[(i*16+j)*4 + 1] = m_atlasRawData[((x+i) * m_atlasHeight + (y+j)) * 4 + 1];
-            m_textureRawData[(i*16+j)*4 + 2] = m_atlasRawData[((x+i) * m_atlasHeight + (y+j)) * 4 + 2];
-            m_textureRawData[(i*16+j)*4 + 3] = m_atlasRawData[((x+i) * m_atlasHeight + (y+j)) * 4 + 3];
-#else
             m_textureRawData[(i*16+j)*4 + 0] = m_atlasRawData[((x+i) * m_atlasHeight + (y+j)) * 4 + 2];
             m_textureRawData[(i*16+j)*4 + 1] = m_atlasRawData[((x+i) * m_atlasHeight + (y+j)) * 4 + 1];
             m_textureRawData[(i*16+j)*4 + 2] = m_atlasRawData[((x+i) * m_atlasHeight + (y+j)) * 4 + 0];
             m_textureRawData[(i*16+j)*4 + 3] = m_atlasRawData[((x+i) * m_atlasHeight + (y+j)) * 4 + 3];
-#endif
         }
     }
     

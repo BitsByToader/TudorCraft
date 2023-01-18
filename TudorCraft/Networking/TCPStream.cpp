@@ -23,10 +23,14 @@
 template const TCPStream &TCPStream::operator<<(short *value);
 template const TCPStream &TCPStream::operator>>(short *value);
 template const TCPStream &TCPStream::operator>>(double *value);
+template const TCPStream &TCPStream::operator<<(double *value);
 template const TCPStream &TCPStream::operator>>(float *value);
+template const TCPStream &TCPStream::operator<<(float *value);
 template const TCPStream &TCPStream::operator>>(int *value);
 template const TCPStream &TCPStream::operator>>(uint8_t *value);
+template const TCPStream &TCPStream::operator<<(int8_t *value);
 template const TCPStream &TCPStream::operator>>(uint64_t *value);
+template const TCPStream &TCPStream::operator<<(uint64_t *value);
 
 TCPStream::TCPStream(MCP::ConnectionState *state, std::string serverAddress, int port) {
     m_connectionState = state;
@@ -151,7 +155,8 @@ const TCPStream &TCPStream::operator>>(MCP::Packet *packet) {
     
     if ( *m_connectionState == MCP::ConnectionState::Handshaking ) {
         if ( packetId.value() == (int)MCP::HandshakingPacketTypes::LoginSuccess ) {
-            std::cout << "LoginSuccess packet" << std::endl;
+            if ( PRINT_RECEIVED_PACKETS )
+                std::cout << "LoginSuccess packet" << std::endl;
             
             MCP::LoginSuccessPacket *loginSuccessPacket = new MCP::LoginSuccessPacket;
             loginSuccessPacket->read(this);
@@ -161,18 +166,20 @@ const TCPStream &TCPStream::operator>>(MCP::Packet *packet) {
         
     } else if ( *m_connectionState == MCP::ConnectionState::Playing ) {
         switch (packetId.value()) {
-            case (int) MCP::ClientBoundPlayingPacketTypes::PlayerInfo: {
-                std::cout << "PlayerInfo packet" << std::endl;
-                
-                MCP::PlayerInfoPacket *playerInfoPacket = new MCP::PlayerInfoPacket;
-                playerInfoPacket->read(this);
-                packet = playerInfoPacket;
-                
-                break;
-            }
+//            case (int) MCP::ClientBoundPlayingPacketTypes::PlayerInfo: {
+//                if ( PRINT_RECEIVED_PACKETS )
+//                    std::cout << "PlayerInfo packet" << std::endl;
+//
+//                MCP::PlayerInfoPacket *playerInfoPacket = new MCP::PlayerInfoPacket;
+//                playerInfoPacket->read(this);
+//                packet = playerInfoPacket;
+//
+//                break;
+//            }
                 
             case (int) MCP::ClientBoundPlayingPacketTypes::KeepAlive: {
-                std::cout << "KeepAlive packet" << std::endl;
+                if ( PRINT_RECEIVED_PACKETS )
+                    std::cout << "KeepAlive packet" << std::endl;
                 
                 MCP::KeepAlivePacket *keepAlivePacket = new MCP::KeepAlivePacket;
                 keepAlivePacket->read(this);
@@ -183,7 +190,8 @@ const TCPStream &TCPStream::operator>>(MCP::Packet *packet) {
             }
                 
             case (int) MCP::ClientBoundPlayingPacketTypes::SynchronizePlayerPosition: {
-                std::cout << "Synchronize player position packet" << std::endl;
+                if ( PRINT_RECEIVED_PACKETS )
+                    std::cout << "Synchronize player position packet" << std::endl;
                 
                 MCP::SynchronizePlayerPositionPacket *sppPacket = new MCP::SynchronizePlayerPositionPacket;
                 sppPacket->read(this);
@@ -193,7 +201,8 @@ const TCPStream &TCPStream::operator>>(MCP::Packet *packet) {
             }
                 
             case (int) MCP::ClientBoundPlayingPacketTypes::SetCenterChunk: {
-                std::cout << "SetCenterChunk packet" << std::endl;
+                if ( PRINT_RECEIVED_PACKETS )
+                    std::cout << "SetCenterChunk packet" << std::endl;
                 
                 MCP::CenterChunkPacket *centerChunkPacket = new MCP::CenterChunkPacket;
                 centerChunkPacket->read(this);
@@ -203,7 +212,8 @@ const TCPStream &TCPStream::operator>>(MCP::Packet *packet) {
             }
                 
             case (int) MCP::ClientBoundPlayingPacketTypes::ChunkData: {
-                std::cout << "ChunkData packet" << std::endl;
+                if ( PRINT_RECEIVED_PACKETS )
+                    std::cout << "ChunkData packet" << std::endl;
                 
                 MCP::ChunkDataPacket *chunkDataPacket = new MCP::ChunkDataPacket;
                 chunkDataPacket->read(this);
@@ -215,13 +225,105 @@ const TCPStream &TCPStream::operator>>(MCP::Packet *packet) {
             }
                 
             case (int) MCP::ClientBoundPlayingPacketTypes::BlockUpdate: {
-                std::cout << "BlockUpdate packet" << std::endl;
+                if ( PRINT_RECEIVED_PACKETS )
+                    std::cout << "BlockUpdate packet" << std::endl;
                 
                 MCP::BlockUpdatePacket *blockUpdatePacket = new MCP::BlockUpdatePacket;
                 blockUpdatePacket->read(this);
                 packet = blockUpdatePacket;
                 
                 blockUpdatePacket->updateGame();
+                
+                break;
+            }
+                
+            case (int) MCP::ClientBoundPlayingPacketTypes::SpawnPlayer: {
+                if ( PRINT_RECEIVED_PACKETS )
+                    std::cout << "SpawnPlayer packet" << std::endl;
+                
+                MCP::SpawnPlayerPacket *spawnPlayerPacket = new MCP::SpawnPlayerPacket;
+                spawnPlayerPacket->read(this);
+                packet = spawnPlayerPacket;
+                
+                spawnPlayerPacket->updateGame();
+                
+                break;
+            }
+                
+            case (int) MCP::ClientBoundPlayingPacketTypes::SpawnEntity: {
+                if ( PRINT_RECEIVED_PACKETS )
+                    std::cout << "SpawnEntity packet" << std::endl;
+                
+                MCP::SpawnEntityPacket *spawnEntityPacket = new MCP::SpawnEntityPacket;
+                spawnEntityPacket->read(this);
+                packet = spawnEntityPacket;
+                
+                spawnEntityPacket->updateGame();
+                
+                break;
+            }
+                
+            case (int) MCP::ClientBoundPlayingPacketTypes::RemoveEntities: {
+                if ( PRINT_RECEIVED_PACKETS )
+                    std::cout << "RemoveEntities packet" << std::endl;
+                
+                MCP::RemoveEntitiesPacket *removeEntitiesPacket = new MCP::RemoveEntitiesPacket;
+                removeEntitiesPacket->read(this);
+                packet = removeEntitiesPacket;
+                
+                removeEntitiesPacket->updateGame();
+                
+                break;
+            }
+                
+            case (int) MCP::ClientBoundPlayingPacketTypes::SetEntityVelocity: {
+                if ( PRINT_RECEIVED_PACKETS )
+                    std::cout << "SetEntityVelocity packet" << std::endl;
+                
+                MCP::SetEntityVelocityPacket *setEntityVelocityPacket = new MCP::SetEntityVelocityPacket;
+                setEntityVelocityPacket->read(this);
+                packet = setEntityVelocityPacket;
+                
+                setEntityVelocityPacket->updateGame();
+                
+                break;
+            }
+                
+            case (int) MCP::ClientBoundPlayingPacketTypes::UpdateEntityPosition: {
+                if ( PRINT_RECEIVED_PACKETS )
+                    std::cout << "UpdateEntityPosition packet" << std::endl;
+                
+                MCP::UpdateEntityPositionPacket *updateEntityPositionPacket = new MCP::UpdateEntityPositionPacket;
+                updateEntityPositionPacket->read(this);
+                packet = updateEntityPositionPacket;
+                
+                updateEntityPositionPacket->updateGame();
+                
+                break;
+            }
+                
+            case (int) MCP::ClientBoundPlayingPacketTypes::UpdateEntityPositionAndRotation: {
+                if ( PRINT_RECEIVED_PACKETS )
+                    std::cout << "UpdateEntityPositionAndRotation packet" << std::endl;
+                
+                MCP::UpdateEntityPositionAndRotationPacket *updateEntityPositionAndRotationPacket = new MCP::UpdateEntityPositionAndRotationPacket;
+                updateEntityPositionAndRotationPacket->read(this);
+                packet = updateEntityPositionAndRotationPacket;
+                
+                updateEntityPositionAndRotationPacket->updateGame();
+                
+                break;
+            }
+                
+            case (int) MCP::ClientBoundPlayingPacketTypes::UpdateEntityRotation: {
+                if ( PRINT_RECEIVED_PACKETS )
+                    std::cout << "UpdateEntityRotation packet" << std::endl;
+                
+                MCP::UpdateEntityRotationPacket *updateEntityRotationPacket = new MCP::UpdateEntityRotationPacket;
+                updateEntityRotationPacket->read(this);
+                packet = updateEntityRotationPacket;
+                
+                updateEntityRotationPacket->updateGame();
                 
                 break;
             }

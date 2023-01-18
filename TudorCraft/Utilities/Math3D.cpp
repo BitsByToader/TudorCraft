@@ -118,6 +118,10 @@ int cantorPairingFunction(int a, int b) {
     return (a + b + 1) * (a + b) / 2 + b;
 };
 
+float cosBetween(simd::float3 v1, simd::float3 v2) {
+    return simd::dot(v1, v2) / simd::length(v1) / simd::length(v2);
+};
+
 size_t hash3D(int a, int b, int c) {
     return cantorPairingFunction(a, cantorPairingFunction(b, c));
 };

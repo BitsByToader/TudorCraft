@@ -40,10 +40,11 @@
 // The view controller
 @interface GameViewController : PlatformViewController <MTKViewDelegate>
 
-- (id) init;
+- (id) initWithUsername: (NSString*) username ip: (NSString*) ip port: (int) port;
 - (void) pressedKey: (UInt16) key;
 - (void) releasedKey: (UInt16) key;
-- (void) mouseMoved: (CGFloat) x newY: (CGFloat) y;
+- (void) mouseMovedWithDeltaX: (CGFloat) x deltaY: (CGFloat) y;
+- (void) pressedMouse: (int) button;
 
 @end
 

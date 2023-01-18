@@ -9,10 +9,23 @@
 #define Block_hpp
 
 #include <iostream>
+#include <unordered_map>
 
 class BlockState {
 public:
+    static std::unordered_map<int, BlockState*>& GlobalPallete();
+    
     static BlockState* GrassBlock();
+    static BlockState* DirtBlock();
+    static BlockState* StoneBlock();
+    static BlockState* OakLogBlock();
+    static BlockState* OakLeavesBlock();
+    static BlockState* WaterBlock();
+    static BlockState* OakPlankBlock();
+    static BlockState* UndefinedBlock();
+    static BlockState* SandBlock();
+    static BlockState* TNTBlock();
+    static BlockState* DiamondOreBlock();
     
     int frontTexture() {
         return m_frontTextureIndex;
@@ -38,6 +51,10 @@ public:
         return m_topTextureIndex;
     }
     
+    int protocolId() {
+        return m_protocolId;
+    }
+    
 private:
     /// Indicates whether or not the block is collidable.
     bool m_collidable;
@@ -54,13 +71,29 @@ private:
     int m_topTextureIndex;
     
     /// The identifier that the original Minecraft uses to locate its resources.
-    std::string identifier;
+    std::string m_identifier;
     
     /// The id used by the Minecraft Protocol when sending chunks of blocks.
-    int globalPaletteId;
+    int m_globalPaletteId;
+    
+    /// The id used by the Minecraft Protocol to refer to items and such.
+    int m_protocolId;
+    
+    //MARK: Global palette
+    static std::unordered_map<int, BlockState*> m_globalPallete;
     
     //MARK: Default blocks
     static BlockState *minecraft_grass_block;
+    static BlockState *minecraft_dirt_block;
+    static BlockState *minecraft_stone_block;
+    static BlockState *minecraft_oak_log_block;
+    static BlockState *minecraft_oak_leaves_block;
+    static BlockState *minecraft_water_block;
+    static BlockState *minecraft_oak_plank_block;
+    static BlockState *undefined_block;
+    static BlockState *minecraft_sand_block;
+    static BlockState *minecraft_tnt_block;
+    static BlockState *minecraft_diamond_ore_block;
 };
 
 #endif /* Block_hpp */

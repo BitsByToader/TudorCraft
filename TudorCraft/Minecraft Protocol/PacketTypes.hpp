@@ -28,8 +28,8 @@ enum class HandshakingPacketTypes : int {
 
 /// Packet types in the playing state received by the client.
 enum class ClientBoundPlayingPacketTypes: int {
-    SpawnEntity                     = 0x00,
-    SpawnPlayer                     = 0x02,
+    SpawnEntity                     = 0x00, // ~~ IMPLEMENTED
+    SpawnPlayer                     = 0x02, // ~~ IMPLEMENTED
     AcknowledgeBlockChange          = 0x05,
     BlockDestroyStage               = 0x06,
     BlockEntityData                 = 0x07,
@@ -46,9 +46,9 @@ enum class ClientBoundPlayingPacketTypes: int {
     WorldEvent                      = 0x22,
     Particle                        = 0x23,
     Login                           = 0x25,
-    UpdateEntityPosition            = 0x28,
-    UpdateEntityPositionAndRotation = 0x29,
-    UpdateEntityRotation            = 0x2A,
+    UpdateEntityPosition            = 0x28, // ~~ IMPLEMENTED
+    UpdateEntityPositionAndRotation = 0x29, // ~~ IMPLEMENTED
+    UpdateEntityRotation            = 0x2A, // ~~ IMPLEMENTED
     PlayerAbilities                 = 0x31,
     CombatDeath                     = 0x36,
     PlayerInfo                      = 0x37, // ~~ IMPLEMENTED
@@ -57,10 +57,10 @@ enum class ClientBoundPlayingPacketTypes: int {
     RemoveEntities                  = 0x3B,
     SetHeadRotation                 = 0x3F,
     UpdateSectionBlocks             = 0x40,
-    SetHeldItem                     = 0x4A,
+    SetHeldItem                     = 0x4A, // ~~ IMPLEMENTED
     SetCenterChunk                  = 0x4B, // ~~ IMPLEMENTED
     SetDefaultSpawnPosition         = 0x4D,
-    SetEntityVelocity               = 0x52,
+    SetEntityVelocity               = 0x52, // ~~ IMPLEMENTED
     SetEquipment                    = 0x53,
     SetHealth                       = 0x55,
     UpdateTime                      = 0x5C,
@@ -74,24 +74,24 @@ enum class ClientBoundPlayingPacketTypes: int {
 
 /// Packet types in the playing state received by the server.
 enum class ServerBoundPlayingPacketTypes: int {
-    ConfirmTeleportation            = 0x00,
+    ConfirmTeleportation            = 0x00, // ~~ IMPLEMENTED
     ChangeDifficulty                = 0x02,
-    ClientCommand                   = 0x07, // When the client is ready to respawn!
+    ClientCommand                   = 0x07,
     ClientInformation               = 0x08,
     Interact                        = 0x19,
     KeepAlive                       = 0x12, // ~~ IMPLEMENTED
     SetPlayerPosition               = 0x14,
-    SetPlayerPositionAndRotation    = 0x15,
+    SetPlayerPositionAndRotation    = 0x15, // ~~ IMPLEMENTED
     SetPlayerRotation               = 0x16,
     SetPlayerOnGround               = 0x17,
     PickItem                        = 0x1A,
-    PlayerAction                    = 0x1D,
+    PlayerAction                    = 0x1D, // ~~ IMPLEMENTED
     PlayerCommand                   = 0x1E,
     PlayerInput                     = 0x1F,
-    SetHeldItem                     = 0x28,
-    SetCreativeModeSlot             = 0x2B,
-    TeleportToEntity                = 0x30,
-    UseItemOn                       = 0x31,
+    SetHeldItem                     = 0x28, // ~~ IMPLEMENTED
+    SetCreativeModeSlot             = 0x2B, // ~~ IMPLEMENTED
+    TeleportToEntity                = 0x30, // ~~ IMPLEMENTED
+    UseItemOn                       = 0x31, // ~~ IMPLEMENTED
     UseItem                         = 0x32
 };
 

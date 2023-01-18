@@ -18,6 +18,7 @@ struct RasterizerData {
     float3 normal;
     float2 textureCoordinate;
     int textureId;
+    bool highlighted;
 };
 
 vertex RasterizerData
@@ -43,12 +44,13 @@ vertexShader(uint vertexID [[vertex_id]],
     
     out.textureCoordinate = vertices[vertexID].textureCoordinate;
     out.textureId = instanceData[instanceId].textureId;
+    out.highlighted = instanceData[instanceId].highlighted;
 
     return out;
 }
 
 struct FragmentShaderTextures {
-    array<texture2d<half>, 3> arr [[ id(TextureIndexBaseColor) ]];
+    array<texture2d<half>, TEXTURE_COUNT> arr [[ id(TextureIndexBaseColor) ]];
 };
 
 // Fragment function
@@ -68,9 +70,13 @@ samplingShader(RasterizerData in [[stage_in]],
     float3 n = normalize( in.normal );
 
     float ndotl = saturate( dot( n, l ) );
+    
+    float highlightFactor = 0.2f;
+    if ( in.highlighted )
+        highlightFactor = 1.f;
 
     // return the color of the texture
-    return float4(colorSample * 0.2 + colorSample * ndotl);
+    return float4(colorSample * highlightFactor + colorSample * ndotl);
 }
 
 

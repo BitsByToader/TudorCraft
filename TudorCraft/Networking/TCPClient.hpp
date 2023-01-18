@@ -13,6 +13,8 @@
 #include <thread>
 #include <typeinfo>
 
+#include <Foundation/Foundation.hpp>
+
 #include "AAPLUtilities.h"
 #include "VarInt.hpp"
 #include "TCPStream.hpp"
@@ -21,8 +23,10 @@
 class TCPClient {
 public:
     //MARK: - Public methods
-    TCPClient(std::string serverAddress, int serverPort);
+    TCPClient(std::string username, std::string serverAddress, int serverPort);
     ~TCPClient();
+    
+    void sendPacket(MCP::Packet *p);
     
 private:
     //MARK: - Private methods

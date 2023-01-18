@@ -151,6 +151,23 @@ void Chunk::placeBlockAt(int x, int y, int z, BlockState *state, Renderer *rende
     int *count = renderer->instanceCount();
     
     Block *currBlock = getBlockAt(x, y, z);
+    if ( currBlock->state == nullptr && state == nullptr )
+        return;
+    
+    if ( currBlock->state != nullptr && state != nullptr ) {
+        /*
+         A hack to update an already existing block with a new state.
+         I initially made the method to basically place or remove blocks... and that's it.
+         To change a block's state, I'd need to add a whole other edge case where we don't
+         remove any instances but only update their textures (since that's what the state is about
+         to the renderer). This hack isn't really noticeable to the naked eye, so it's easier to
+         go about it this way.
+         */
+        placeBlockAt(x, y, z, nullptr); // Remove the block
+        placeBlockAt(x, y, z, state); // Place a block with the new state
+        return;
+    }
+    
     currBlock->state = state;
     
     Block *nextBlock = nullptr;
@@ -273,12 +290,12 @@ void Chunk::placeBlockAt(int x, int y, int z, BlockState *state, Renderer *rende
         float4x4 blockPositionTranslationMatrix;
         
         // Front of block
-        nextBlock = world->getBlockAt(globalX, globalY, (globalZ-1));
+        nextBlock = world->getBlockAt(globalX, globalY, globalZ-1);
         if ( nextBlock != nullptr && nextBlock->state != nullptr ) {
             blockPositionTranslationMatrix=
                 makeTranslate((float3) {globalX*scl,
                                         globalY*scl,
-                                        -(globalZ+1)* scl } );
+                                        (-globalZ+1)* scl } );
             
             buffer[*count].transform = blockPositionTranslationMatrix * scale * moveFaceToBack();
             buffer[*count].normalTransform = Math3D::discardTranslation(buffer[*count].transform);
@@ -318,7 +335,7 @@ void Chunk::placeBlockAt(int x, int y, int z, BlockState *state, Renderer *rende
             blockPositionTranslationMatrix =
                 makeTranslate((float3) {globalX*scl,
                                         globalY*scl,
-                                        -(globalZ-1)*scl } );
+                                        (-globalZ-1)*scl } );
             
             buffer[*count].transform = blockPositionTranslationMatrix * scale;
             buffer[*count].normalTransform = discardTranslation(buffer[*count].transform);

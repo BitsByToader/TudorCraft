@@ -120,6 +120,8 @@ namespace Private
             "addObject:");
         _NS_PRIVATE_DEF_SEL(addObserverName_object_queue_block_,
             "addObserverForName:object:queue:usingBlock:");
+        _NS_PRIVATE_DEF_SEL(postNotificationName_object_,
+            "postNotificationName:object:");
         _NS_PRIVATE_DEF_SEL(activeProcessorCount,
             "activeProcessorCount");
         _NS_PRIVATE_DEF_SEL(allBundles,

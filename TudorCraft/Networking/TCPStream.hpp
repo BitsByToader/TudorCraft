@@ -27,6 +27,8 @@
 #include "Uuid.hpp"
 #include "Nbt.hpp"
 
+#define PRINT_RECEIVED_PACKETS 0
+
 #define SEND_BUFFER_SIZE 1024
 #define RECV_BUFFER_SIZE 2097152
 

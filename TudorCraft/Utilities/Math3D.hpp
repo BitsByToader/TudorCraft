@@ -49,7 +49,8 @@ inline const simd::float4x4 moveFaceToBottom() {
     return makeXRotate4x4(3 * M_PI/2);
 };
 
-// MARK: - Hashing (pairing) of 3D coordinates
+//MARK: - Others
+float cosBetween(simd::float3 v1, simd::float3 v2);
 size_t hash3D(int a,  int b, int c);
 
 }

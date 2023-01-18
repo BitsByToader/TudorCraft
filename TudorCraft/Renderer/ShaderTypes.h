@@ -10,6 +10,8 @@
 
 #include <simd/simd.h>
 
+#define TEXTURE_COUNT 15
+
 //MARK: - Vertex arguments indices
 typedef enum VertexInputIndex {
     VertexInputIndexVertices     = 0,
@@ -41,7 +43,7 @@ typedef struct {
 } Vertex;
 
 //MARK: - InstanceData struct
-typedef struct {
+typedef struct InstanceData {
     // Rotation matrix to be applied to the triangle during render
     matrix_float4x4 transform;
     
@@ -53,6 +55,8 @@ typedef struct {
     
     // The block which the triangle belongs to.
     simd_int3 blockCoordinates;
+    
+    bool highlighted = false;
 } InstanceData;
 
 //MARK: - CameraData struct

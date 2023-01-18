@@ -7,11 +7,12 @@
 
 #include "TCPClient.hpp"
 
-TCPClient::TCPClient(std::string serverAddress, int port) : m_server(&m_state, serverAddress, port) {
-    std::string name = "TudorCraft";
+#include "Engine.hpp"
+
+TCPClient::TCPClient(std::string username, std::string serverAddress, int serverPort) : m_server(&m_state, serverAddress, serverPort) {
     
-    MCP::HandshakePacket initialHandshake(760, serverAddress, port);
-    MCP::LoginStartPacket loginStart(name);
+    MCP::HandshakePacket initialHandshake(760, serverAddress, serverPort);
+    MCP::LoginStartPacket loginStart(username);
     
     m_server << reinterpret_cast<MCP::Packet *>(&initialHandshake);
     m_server << reinterpret_cast<MCP::Packet *>(&loginStart);
@@ -19,11 +20,13 @@ TCPClient::TCPClient(std::string serverAddress, int port) : m_server(&m_state, s
     m_state = MCP::ConnectionState::Handshaking;
     
     m_recvThread = std::thread(&TCPClient::readLoop, this);
+    
+    Engine::shared()->setServerConnection(this);
 };
 
 
 TCPClient::~TCPClient() {
-    
+    m_state = MCP::ConnectionState::Unconnected;
     m_recvThread.join();
     AAPL_PRINT("TCPClient done!");
 };
@@ -44,4 +47,9 @@ void TCPClient::readLoop() {
     }
     
     AAPL_PRINT("Socket Done.");
+};
+
+void TCPClient::sendPacket(MCP::Packet *p) {
+    if ( m_state == MCP::ConnectionState::Playing )
+        m_server << p;
 };

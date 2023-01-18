@@ -28,6 +28,7 @@ public:
     
     /// Getter for the global Renderer singleton.
     static Renderer *shared();
+    static void destroySharedObject();
     
     /// Notifies the renderer that the window size changed.
     /// - Parameters:
@@ -90,8 +91,7 @@ private:
     MTL::Heap *m_heap;
     
     /// Metal textures buffer
-    MTL::Texture *m_texture[3];
-    int m_textureCount = 3;
+    MTL::Texture *m_texture[TEXTURE_COUNT];
     
     /// Vertex data buffer
     MTL::Buffer *m_blockFaceVertices;
