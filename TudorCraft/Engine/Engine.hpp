@@ -25,6 +25,21 @@
 #include "TCPClient.hpp"
 #include "Packet.hpp"
 
+/// The `Engine` class is the heart of the `TudorCraft` game.
+///
+/// It is responsible for managing everything from the notifications received from the UI to updating the physics model,
+/// to handling entities, to handling the world and rendering everything correctly.
+///
+/// # Memory management:
+///     The engine uses C++11 and later smart pointers to handle all dynamic memory in the engine (aside from the World and the Renderer). This
+/// make it very easy to not end up with memory leaks, but more importantly, it ensures a clean implementation for all the sub systems of
+/// the engine. As such we don't need to use any complex component based logic to ensure proper ownership, allocation and deallocation of
+/// the objects.
+///   For example, when we remove an entity, it only necessary for it to be cleared from the  `std::unordered_map` for it to be deallocated
+///  along with all of its subcomponents. In this example we can clearly see that we can write the Engine in a very C++ way, i.e. fast, clean
+///  and safe.
+///   While we currently only support Entities for drawing, MobEntities for physics and collisions, we can easily add other behaviours like AI
+///  easily without thinking about what and when to deallocate or if it's truly needed anymore.
 class Engine {
 public:
     static Engine* shared();
