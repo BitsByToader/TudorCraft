@@ -32,6 +32,11 @@
 #define SEND_BUFFER_SIZE 1024
 #define RECV_BUFFER_SIZE 2097152
 
+/// A `Streamble` inherited class for communicating over TCP to an unencrypted and uncompressed Minecraft Java Edition 1.19.2 server.
+///
+/// The class is supposed to be used with a `TCPClient` to handle *concurrently* receiving and seding packets to the server.
+///
+/// The `Streamable` interface was used to also facilitate reading NBT data from the server for world and player data reading.
 class TCPStream: public Streamable {
 public:
     TCPStream() {};

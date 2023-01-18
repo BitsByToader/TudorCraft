@@ -18,6 +18,18 @@
 #include "TextureAtlas.hpp"
 
 /// The voxle renderer responsible  for displaying the world and all its contents to the drawable.
+///
+/// # Features:
+/// - Mesh generation in the `World` to render individual faces instead of the whole cube.
+/// - Backface culling to prevent rendering of the faces which face away from the camera.
+/// - Indexed and instanced rendering for better memory usage and an easier instance manangement.
+/// - Depth ordering on the GPU side to properly display all the faces of the block.
+/// - Usage of the GPU heap for fast texture loading between frames.
+/// - Memory-leak-free management using (manual) reference counting (from `NS::Object`)  and `NS::AutoReleasePool`
+///
+/// *NOTE:* We're currently using manual reference counting for all of the memory shared with the GPU. While this is currently fine, we
+/// can use `NS::SharedPtr` which are similar to `std::shared_ptr` (but have some optimizations for the memory model used by Apple)
+/// to esentially prevent any possible memory leaks.
 class Renderer {
 public:
     // MARK: Public Methods

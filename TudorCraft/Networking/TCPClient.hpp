@@ -20,6 +20,8 @@
 #include "TCPStream.hpp"
 #include "Packet.hpp"
 
+/// Basic TCP client that implements a `TCPStream` on a sepearte thread, along with sending data on the default thread the class
+/// was instantied on.
 class TCPClient {
 public:
     //MARK: - Public methods
