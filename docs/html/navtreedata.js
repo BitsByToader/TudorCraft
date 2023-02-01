@@ -64,7 +64,7 @@ var NAVTREEINDEX =
 "_a_a_p_l_utilities_8h.html",
 "_shader_types_8h.html#ab3bc5a03c3c1ec34cf94a897b8f9b47b",
 "class_m_c_p_1_1_set_creative_mode_slot_packet.html#a4f80e1b4b32a4d16b55b08ac7aef9b79",
-"functions_func.html",
+"functions_func_b.html",
 "struct_m_c_p_1_1_player_info_packet_1_1_player.html#aef40d93c34ce1a2710ef8b762e93ff9d"
 ];
 
