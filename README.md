@@ -2,7 +2,7 @@
 *TudorCraft* is a client for any vanilla Minecraft Java Edition 1.19.2 server. The goal was to create a fast, easy-on-resources clone of Minecraft that can run iPhones, iPads and Macs. Thus, it was written in C++ using Apple's graphics API, Metal, or more specifically, metal-cpp (you can read more about metal-cpp [here](metal-cpp/README.md)).
 
 ![Splashscreen of TudorCraft](https://github.com/BitsByToader/TudorCraft/blob/main/docs/showcase3.PNG?raw=true)
-![Screenshot of Mac version](https://github.com/BitsByToader/TudorCraft/blob/main/docs/showcase2.PNG?raw=true)
+![Screenshot of Mac version](https://github.com/BitsByToader/TudorCraft/blob/main/docs/showcase2.png?raw=true)
 ![Screenshot of iPad version](https://github.com/BitsByToader/TudorCraft/blob/main/docs/showcase1.PNG?raw=true)
 ![Video showcase of TC on an iPad](https://user-images.githubusercontent.com/57571262/216151277-f250be47-8bf0-4c47-84ac-0b55c6fad0ba.mov)
 
